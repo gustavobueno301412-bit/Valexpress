@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Vale Express - Gestão PRO</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        :root { --primary: #0984e3; --dark: #2d3436; --success: #00b894; --whatsapp: #25D366; --bg: #f1f2f6; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 0; }
+        .container { display: flex; flex-direction: column; gap: 15px; padding: 10px; }
+        @media (min-width: 992px) {
+            .container { display: grid; grid-template-columns: 350px 1fr; padding: 20px; height: 100vh; box-sizing: border-box; }
+            .sidebar { overflow-y: auto; padding-right: 10px; }
+        }
+        .card { background: white; padding: 15px; border-radius: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); margin-bottom: 10px; }
+        h2 { font-size: 1.2rem; margin: 0 0 15px 0; border-left: 4px solid var(--primary); padding-left: 10px; color: var(--dark); }
+        input, select, button { width: 100%; padding: 12px; margin: 6px 0; border-radius: 8px; border: 1px solid #ddd; font-size: 16px; box-sizing: border-box; }
+        button { background: var(--primary); color: white; border: none; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        #map { height: 350px; width: 100%; border-radius: 12px; z-index: 1; }
+        @media (min-width: 992px) { #map { height: 500px; } }
+        .table-responsive { width: 100%; overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; min-width: 450px; }
+        th, td { text-align: left; padding: 12px; border-bottom: 1px solid #eee; font-size: 13px; }
+       
+        .btn-desp { background: #6c5ce7; width: auto; padding: 8px 10px; font-size: 12px; margin-right: 4px; }
+        .btn-wpp { background: var(--whatsapp); width: auto; padding: 8px 10px; font-size: 12px; margin-right: 4px; }
+        .btn-del { background: #ff7675; width: auto; padding: 8px 10px; font-size: 12px; }
+       
+        .status-badge { padding: 4px 8px; border-radius: 20px; font-size: 10px; font-weight: bold; text-transform: uppercase; }
+        .aguardando { background: #ffeaa7; color: #d35400; }
+        .pendente { background: #81ecec; color: #0984e3; }
+       
+        .popup-moto { text-align: center; min-width: 120px; }
+        .popup-moto img { width: 100px; height: 70px; object-fit: cover; border-radius: 8px; margin-bottom: 8px; }
+        .resumo-box { background: #f9f9f9; padding: 10px; border-radius: 8px; margin-top: 10px; border: 1px solid #eee; color: #2d3436; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="sidebar">
+        <div class="card">
+            <h2>🚀 Novo Pedido</h2>
+            <input type="text" id="cli" placeholder="Nome do Cliente">
+            <input type="text" id="prod" placeholder="Produto">
+            <input type="text" id="ret" placeholder="Local de Retirada">
+            <input type="text" id="ent" placeholder="Local de Entrega">
+            <select id="sel-cidade" onchange="atualizarTaxa()"></select>
+            <select id="sel-moto"></select>
+            <select id="sel-pg">
+                <option value="Pix">Pix</option>
+                <option value="Dinheiro">Dinheiro</option>
+            </select>
+            <input type="number" id="taxa-val" placeholder="R$ Taxa">
+            <button onclick="lancar()">CADASTRAR E LANÇAR</button>
+        </div>
+
+        <div class="card" style="background: var(--dark); color: white;">
+            <h2 style="color: white; border-color: var(--success);">💰 Fechamento</h2>
+            <label><small>Início:</small></label>
+            <input type="date" id="ini">
+            <label><small>Fim:</small></label>
+            <input type="date" id="fim">
+            <select id="rel-moto" style="color: black;"></select>
+            <button style="background: var(--success)" onclick="relatorio()">GERAR RELATÓRIO</button>
+            <div id="res-rel" class="resumo-box" style="display:none;">
+                <p>Total Motoboy: <span id="val-moto" style="font-weight:bold; color:var(--success)"></span></p>
+                <p>Total Empresa: <span id="val-total" style="font-weight:bold;"></span></p>
+                <p>Viagens: <span id="val-qtd"></span></p>
+                <button class="btn-wpp" style="width:100%" onclick="compartilharRelatorio()">ENVIAR PARA MOTOBOY</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="main">
+        <div class="card" style="padding: 5px;"><div id="map"></div></div>
+        <div class="card">
+            <h2>📦 Gestão de Entregas</h2>
+            <div class="table-responsive">
+                <table>
+                    <thead><tr><th>Entregador/Cliente</th><th>Status</th><th>Ações</th></tr></thead>
+                    <tbody id="lista-pedidos"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+    const URL_API = "https://script.google.com/macros/s/AKfycbybnshQ4R7jiwAGDsQZWd1D3se73KdEms3H0xztxTQG6NAuHLgj88Ok-Srg4siP4LTQkA/exec";
+    const URL_RASTREIO = URL_API + "?rastreio=sim";
+
+    var map = L.map('map').setView([-22.5734, -44.9701], 14);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+    var markers = {};
+    var dadosRel = {};
+
+    async function init() {
+        try {
+            const res = await fetch(URL_API + "?action=getConfig");
+            const conf = await res.json();
+            document.getElementById('sel-moto').innerHTML = conf.motoboys.map(m => `<option value="${m.nome}">${m.nome}</option>`).join('');
+            document.getElementById('rel-moto').innerHTML = document.getElementById('sel-moto').innerHTML;
+            document.getElementById('sel-cidade').innerHTML = conf.cidades.map(c => `<option value="${c.taxa}">${c.nome}</option>`).join('');
+            atualizarTaxa();
+            carregarPedidos();
+            monitorarGps();
+            setTimeout(() => map.invalidateSize(), 800);
+        } catch(e) { console.error("Erro ao carregar configurações"); }
+    }
+
+    function atualizarTaxa() { document.getElementById('taxa-val').value = document.getElementById('sel-cidade').value; }
+
+    async function carregarPedidos() {
+        try {
+            const res = await fetch(URL_API + "?action=getAtivos");
+            const pedidos = await res.json();
+            document.getElementById('lista-pedidos').innerHTML = pedidos.map(p => `
+                <tr>
+                    <td><b>${p.moto}</b><br><small>${p.cliente}</small></td>
+                    <td><span class="status-badge ${p.status}">${p.status}</span></td>
+                    <td>
+                        <button class="btn-desp" title="Despachar" onclick="despacharParaMoto(${p.id}, '${p.whatsapp}', '${p.ret}', '${p.ent}', '${p.prod}')">🚚</button>
+                        <button class="btn-wpp" title="Whats Cliente" onclick="enviarWppCliente('${p.moto}', '${p.cliente}')">📱</button>
+                        <button class="btn-del" title="Finalizar" onclick="finalizar(${p.id})">🗑️</button>
+                    </td>
+                </tr>
+            `).join('');
+        } catch(e) {}
+    }
+
+    async function despacharParaMoto(id, numeroWpp, ret, ent, prod) {
+        // 1. Limpa o número e coloca 55 (Brasil) automático
+        let num = numeroWpp.toString().replace(/\D/g, '');
+        if (!num.startsWith('55') && num.length > 0) { num = '55' + num; }
+
+        // 2. Atualiza status na planilha
+        await fetch(URL_API, { method: 'POST', body: JSON.stringify({acao: "updateStatus", id: id, status: 'pendente'}) });
+       
+        // 3. Link do App Motoboy (unificado)
+        const linkAppMoto = URL_API + "?app=moto";
+        const msg = `*NOVA ENTREGA - VALE EXPRESS*\n\n📦 *Produto:* ${prod}\n📍 *Retirada:* ${ret}\n🏁 *Entrega:* ${ent}\n\nClique no link para abrir o seu aplicativo e ligar o GPS:\n${linkAppMoto}`;
+
+        // 4. Abre o WhatsApp do motoboy selecionado
+        if(num.length > 5) {
+            window.open(`https://api.whatsapp.com/send?phone=${num}&text=${encodeURIComponent(msg)}`, '_blank');
+        } else {
+            alert("WhatsApp do motoboy não cadastrado na Coluna J!");
+        }
+       
+        carregarPedidos();
+    }
+
+    function enviarWppCliente(moto, cliente) {
+        const link = `${URL_RASTREIO}&moto=${encodeURIComponent(moto)}`;
+        const msg = `Olá ${cliente}, sua entrega saiu! Acompanhe pelo mapa: ${link}`;
+        window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`, '_blank');
+    }
+
+    async function monitorarGps() {
+        try {
+            const res = await fetch(URL_API + "?action=getLocations");
+            const locs = await res.json();
+            locs.forEach(m => {
+                const popup = `<div class="popup-moto"><img src="${m.bike}"><b>${m.nome}</b><p>${m.detalhes || ''}</p></div>`;
+                if (markers[m.nome]) {
+                    markers[m.nome].setLatLng([m.lat, m.lng]).getPopup().setContent(popup);
+                } else {
+                    let icon = L.divIcon({
+                        html: `<img src="${m.foto}" style="width:48px;height:48px;border-radius:50%;border:3px solid var(--primary);background:white;box-shadow: 0 4px 8px rgba(0,0,0,0.3);">`,
+                        className: '', iconSize:[48,48], iconAnchor:[24,48]
+                    });
+                    markers[m.nome] = L.marker([m.lat, m.lng], {icon}).addTo(map).bindPopup(popup);
+                }
+            });
+        } catch(e) {}
+        setTimeout(monitorarGps, 5000);
+    }
+
+    async function relatorio() {
+        const m = document.getElementById('rel-moto').value;
+        const i = document.getElementById('ini').value;
+        const f = document.getElementById('fim').value;
+        if(!i || !f) return alert("Selecione as datas!");
+
+        const res = await (await fetch(`${URL_API}?action=getRelatorio&moto=${m}&inicio=${i}&fim=${f}`)).json();
+        dadosRel = { moto: m, total: res.totalMoto, qtd: res.qtd, ini: i, fim: f };
+
+        document.getElementById('res-rel').style.display = 'block';
+        document.getElementById('val-moto').innerText = `R$ ${res.totalMoto.toFixed(2)}`;
+        document.getElementById('val-total').innerText = `R$ ${(res.totalMoto + (res.totalEmpresa || 0)).toFixed(2)}`;
+        document.getElementById('val-qtd').innerText = res.qtd;
+    }
+
+    function compartilharRelatorio() {
+        const msg = `*VALE EXPRESS - FECHAMENTO*\n🛵 *Motoboy:* ${dadosRel.moto}\n📅 *Período:* ${dadosRel.ini} a ${dadosRel.fim}\n✅ *Entregas:* ${dadosRel.qtd}\n💰 *VALOR A RECEBER: R$ ${dadosRel.total.toFixed(2)}*`;
+        window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`, '_blank');
+    }
+
+    async function lancar() {
+        const d = { acao: "novo_pedido", cliente: document.getElementById('cli').value, produto: document.getElementById('prod').value, retirada: document.getElementById('ret').value, entrega: document.getElementById('ent').value, motoboy: document.getElementById('sel-moto').value, taxa: document.getElementById('taxa-val').value, pg: document.getElementById('sel-pg').value };
+        if(!d.cliente) return alert("Preencha o cliente!");
+        await fetch(URL_API, { method: 'POST', body: JSON.stringify(d) });
+        alert("Lançado!");
+        carregarPedidos();
+    }
+
+    async function finalizar(id) {
+        if(confirm("Deseja finalizar esta entrega?")) {
+            await fetch(URL_API, { method: 'POST', body: JSON.stringify({acao: "finalizar", id}) });
+            carregarPedidos();
+        }
+    }
+
+    init();
+</script>
+</body>
+</html>
+
+ 
