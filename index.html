@@ -9,16 +9,30 @@
         :root { --primary: #0984e3; --dark: #2d3436; --success: #00b894; --whatsapp: #25D366; --bg: #f1f2f6; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 0; }
         .container { display: flex; flex-direction: column; gap: 15px; padding: 10px; }
+       
         @media (min-width: 992px) {
             .container { display: grid; grid-template-columns: 350px 1fr; padding: 20px; height: 100vh; box-sizing: border-box; }
             .sidebar { overflow-y: auto; padding-right: 10px; }
         }
+
+        /* LÓGICA DE TELA CHEIA PARA O CLIENTE */
+        body.modo-rastreio .sidebar,
+        body.modo-rastreio .card:not(#map-card),
+        body.modo-rastreio h2 {
+            display: none !important;
+        }
+        body.modo-rastreio .container { display: block; padding: 0; }
+        body.modo-rastreio #map-card { padding: 0; border-radius: 0; }
+        body.modo-rastreio #map { height: 100vh; width: 100vw; border-radius: 0; }
+
         .card { background: white; padding: 15px; border-radius: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); margin-bottom: 10px; }
         h2 { font-size: 1.2rem; margin: 0 0 15px 0; border-left: 4px solid var(--primary); padding-left: 10px; color: var(--dark); }
         input, select, button { width: 100%; padding: 12px; margin: 6px 0; border-radius: 8px; border: 1px solid #ddd; font-size: 16px; box-sizing: border-box; }
         button { background: var(--primary); color: white; border: none; font-weight: bold; cursor: pointer; transition: 0.2s; }
+       
         #map { height: 350px; width: 100%; border-radius: 12px; z-index: 1; }
-        @media (min-width: 992px) { #map { height: 500px; } }
+        @media (min-width: 992px) { #map { height: 550px; } }
+
         .table-responsive { width: 100%; overflow-x: auto; }
         table { width: 100%; border-collapse: collapse; min-width: 450px; }
         th, td { text-align: left; padding: 12px; border-bottom: 1px solid #eee; font-size: 13px; }
@@ -31,8 +45,8 @@
         .aguardando { background: #ffeaa7; color: #d35400; }
         .pendente { background: #81ecec; color: #0984e3; }
        
-        .popup-moto { text-align: center; min-width: 120px; }
-        .popup-moto img { width: 100px; height: 70px; object-fit: cover; border-radius: 8px; margin-bottom: 8px; }
+        .popup-moto { text-align: center; min-width: 150px; }
+        .popup-moto img { width: 120px; height: 80px; object-fit: cover; border-radius: 8px; margin-bottom: 8px; display: block; margin-left: auto; margin-right: auto; }
         .resumo-box { background: #f9f9f9; padding: 10px; border-radius: 8px; margin-top: 10px; border: 1px solid #eee; color: #2d3436; }
     </style>
 </head>
@@ -74,7 +88,7 @@
     </div>
 
     <div class="main">
-        <div class="card" style="padding: 5px;"><div id="map"></div></div>
+        <div class="card" id="map-card" style="padding: 5px;"><div id="map"></div></div>
         <div class="card">
             <h2>📦 Gestão de Entregas</h2>
             <div class="table-responsive">
@@ -90,14 +104,20 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
     const URL_API = "https://script.google.com/macros/s/AKfycbwAA1ErhRwHKn8_WB0RIJGczognH-lozsyInvuaC9RMEBAlNZd3AT8LXS-HgDBkEfZPxg/exec";
-    // AJUSTE: Link do seu aplicativo que o motoboy vai abrir
     const URL_MOTO_APP = "https://gustavobueno301412-bit.github.io/Valexpress/cliente.html";
 
     var map = L.map('map').setView([-22.5734, -44.9701], 14);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
     var markers = {};
     var dadosRel = {};
-    var listaMotosGlobal = []; // Para guardar os zaps
+    var listaMotosGlobal = [];
+
+    // LÓGICA PARA IDENTIFICAR SE É CLIENTE OU ADMIN
+    const urlParams = new URLSearchParams(window.location.search);
+    const modoCliente = urlParams.get('cliente') === 'true';
+    if (modoCliente) {
+        document.body.classList.add('modo-rastreio');
+    }
 
     async function init() {
         try {
@@ -105,7 +125,6 @@
             const conf = await res.json();
             listaMotosGlobal = conf.motoboys;
 
-            // Preenche o select e guarda o WhatsApp no atributo data-zap
             document.getElementById('sel-moto').innerHTML = conf.motoboys.map(m =>
                 `<option value="${m.nome}" data-zap="${m.whatsapp}">${m.nome}</option>`
             ).join('');
@@ -123,12 +142,12 @@
     function atualizarTaxa() { document.getElementById('taxa-val').value = document.getElementById('sel-cidade').value; }
 
     async function carregarPedidos() {
+        if(modoCliente) return; // Cliente não precisa carregar tabela
         try {
             const res = await fetch(URL_API + "?action=getAtivos");
             const pedidos = await res.json();
            
             document.getElementById('lista-pedidos').innerHTML = pedidos.map(p => {
-                // Busca o zap do motoboy na nossa lista global
                 const motoInfo = listaMotosGlobal.find(m => m.nome === p.moto);
                 const zap = motoInfo ? motoInfo.whatsapp : "";
 
@@ -141,34 +160,25 @@
                         <button class="btn-wpp" title="Whats Cliente" onclick="enviarWppCliente('${p.moto}', '${p.cliente}')">📱</button>
                         <button class="btn-del" title="Finalizar" onclick="finalizar(${p.id})">🗑️</button>
                     </td>
-                </tr>
-                `;
+                </tr>`;
             }).join('');
         } catch(e) {}
     }
 
     async function despacharParaMoto(id, numeroWpp, ret, ent, prod) {
-        if (!numeroWpp || numeroWpp === "") {
-            alert("Erro: WhatsApp do motoboy não encontrado na Coluna J!");
-            return;
-        }
-
+        if (!numeroWpp) return alert("WhatsApp do motoboy não encontrado!");
         let num = numeroWpp.replace(/\D/g, '');
         if (!num.startsWith('55')) num = '55' + num;
-
-        // Atualiza para pendente
         await fetch(URL_API, { method: 'POST', body: JSON.stringify({acao: "updateStatus", id: id, status: 'pendente'}) });
-       
-        const msg = `*NOVA ENTREGA - VALE EXPRESS*\n\n📦 *Produto:* ${prod}\n📍 *Retirada:* ${ret}\n🏁 *Entrega:* ${ent}\n\nAbra seu app para iniciar:\n${URL_MOTO_APP}`;
-
+        const msg = `*NOVA ENTREGA - VALE EXPRESS*\n\n📦 *Produto:* ${prod}\n📍 *Retirada:* ${ret}\n🏁 *Entrega:* ${ent}\n\nAbra seu app:\n${URL_MOTO_APP}`;
         window.open(`https://api.whatsapp.com/send?phone=${num}&text=${encodeURIComponent(msg)}`, '_blank');
         carregarPedidos();
     }
 
     function enviarWppCliente(moto, cliente) {
-        // Link de rastreio para o seu GitHub
-        const linkRastreio = `https://gustavobueno301412-bit.github.io/Valexpress/cliente.html?moto=${encodeURIComponent(moto)}`;
-        const msg = `Olá ${cliente}, sua entrega saiu! Acompanhe pelo mapa: ${linkRastreio}`;
+        // AQUI ESTÁ O SEGREDO: Enviamos o parâmetro cliente=true
+        const linkRastreio = window.location.href.split('?')[0] + `?cliente=true&moto=${encodeURIComponent(moto)}`;
+        const msg = `Olá ${cliente}, sua entrega com o motoboy ${moto} saiu! Acompanhe pelo mapa em tempo real: ${linkRastreio}`;
         window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`, '_blank');
     }
 
@@ -176,13 +186,28 @@
         try {
             const res = await fetch(URL_API + "?action=getLocations");
             const locs = await res.json();
+           
+            // Se for modo cliente, opcionalmente filtramos para mostrar só o motoboy dele
+            const motoFiltrada = urlParams.get('moto');
+
             locs.forEach(m => {
-                const popup = `<div class="popup-moto"><img src="${m.bike}"><b>${m.nome}</b><p>${m.detalhes || ''}</p></div>`;
+                if (motoFiltrada && m.nome !== motoFiltrada) {
+                    if(markers[m.nome]) map.removeLayer(markers[m.nome]);
+                    return;
+                }
+
+                const popup = `
+                    <div class="popup-moto">
+                        <img src="${m.bike || 'https://via.placeholder.com/100'}">
+                        <b>${m.nome}</b>
+                        <p>${m.detalhes || 'Em entrega...'}</p>
+                    </div>`;
+
                 if (markers[m.nome]) {
                     markers[m.nome].setLatLng([m.lat, m.lng]).getPopup().setContent(popup);
                 } else {
                     let icon = L.divIcon({
-                        html: `<img src="${m.foto}" style="width:48px;height:48px;border-radius:50%;border:3px solid var(--primary);background:white;box-shadow: 0 4px 8px rgba(0,0,0,0.3);">`,
+                        html: `<img src="${m.foto}" style="width:48px;height:48px;border-radius:50%;border:3px solid var(--primary);background:white;box-shadow: 0 4px 8px rgba(0,0,0,0.3);object-fit:cover;">`,
                         className: '', iconSize:[48,48], iconAnchor:[24,48]
                     });
                     markers[m.nome] = L.marker([m.lat, m.lng], {icon}).addTo(map).bindPopup(popup);
