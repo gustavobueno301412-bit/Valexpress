@@ -9,49 +9,32 @@
         :root { --primary: #0984e3; --dark: #2d3436; --success: #00b894; --whatsapp: #25D366; --bg: #f1f2f6; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 0; }
         .container { display: flex; flex-direction: column; gap: 15px; padding: 10px; }
-       
         @media (min-width: 992px) {
             .container { display: grid; grid-template-columns: 350px 1fr; padding: 20px; height: 100vh; box-sizing: border-box; }
             .sidebar { overflow-y: auto; padding-right: 10px; }
         }
-
-        /* LÓGICA DE TELA CHEIA PARA O CLIENTE */
-        body.modo-rastreio .sidebar,
-        body.modo-rastreio .card:not(#map-card),
-        body.modo-rastreio h2 {
-            display: none !important;
-        }
+        body.modo-rastreio .sidebar, body.modo-rastreio .card:not(#map-card), body.modo-rastreio h2 { display: none !important; }
         body.modo-rastreio .container { display: block; padding: 0; }
-        body.modo-rastreio #map-card { padding: 0; border-radius: 0; }
+        body.modo-rastreio #map-card { padding: 0; border-radius: 0; margin: 0; }
         body.modo-rastreio #map { height: 100vh; width: 100vw; border-radius: 0; }
-
         .card { background: white; padding: 15px; border-radius: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); margin-bottom: 10px; }
         h2 { font-size: 1.2rem; margin: 0 0 15px 0; border-left: 4px solid var(--primary); padding-left: 10px; color: var(--dark); }
         input, select, button { width: 100%; padding: 12px; margin: 6px 0; border-radius: 8px; border: 1px solid #ddd; font-size: 16px; box-sizing: border-box; }
-        button { background: var(--primary); color: white; border: none; font-weight: bold; cursor: pointer; transition: 0.2s; }
-       
+        button { background: var(--primary); color: white; border: none; font-weight: bold; cursor: pointer; }
         #map { height: 350px; width: 100%; border-radius: 12px; z-index: 1; }
         @media (min-width: 992px) { #map { height: 550px; } }
-
         .table-responsive { width: 100%; overflow-x: auto; }
         table { width: 100%; border-collapse: collapse; min-width: 450px; }
         th, td { text-align: left; padding: 12px; border-bottom: 1px solid #eee; font-size: 13px; }
-       
-        .btn-desp { background: #6c5ce7; width: auto; padding: 8px 10px; font-size: 12px; margin-right: 4px; }
-        .btn-wpp { background: var(--whatsapp); width: auto; padding: 8px 10px; font-size: 12px; margin-right: 4px; }
-        .btn-del { background: #ff7675; width: auto; padding: 8px 10px; font-size: 12px; }
-       
-        .status-badge { padding: 4px 8px; border-radius: 20px; font-size: 10px; font-weight: bold; text-transform: uppercase; }
-        .aguardando { background: #ffeaa7; color: #d35400; }
-        .pendente { background: #81ecec; color: #0984e3; }
-       
-        .popup-moto { text-align: center; min-width: 150px; }
-        .popup-moto img { width: 120px; height: 80px; object-fit: cover; border-radius: 8px; margin-bottom: 8px; display: block; margin-left: auto; margin-right: auto; }
-        .resumo-box { background: #f9f9f9; padding: 10px; border-radius: 8px; margin-top: 10px; border: 1px solid #eee; color: #2d3436; }
+        .btn-desp { background: #6c5ce7; width: auto; padding: 8px 10px; }
+        .btn-wpp { background: var(--whatsapp); width: auto; padding: 8px 10px; }
+        .btn-del { background: #ff7675; width: auto; padding: 8px 10px; }
+        .status-badge { padding: 4px 8px; border-radius: 20px; font-size: 10px; font-weight: bold; }
+        .popup-moto { text-align: center; }
+        .popup-moto img { width: 120px; border-radius: 8px; }
     </style>
 </head>
 <body>
-
 <div class="container">
     <div class="sidebar">
         <div class="card">
@@ -62,38 +45,29 @@
             <input type="text" id="ent" placeholder="Local de Entrega">
             <select id="sel-cidade" onchange="atualizarTaxa()"></select>
             <select id="sel-moto"></select>
-            <select id="sel-pg">
-                <option value="Pix">Pix</option>
-                <option value="Dinheiro">Dinheiro</option>
-            </select>
+            <select id="sel-pg"><option value="Pix">Pix</option><option value="Dinheiro">Dinheiro</option></select>
             <input type="number" id="taxa-val" placeholder="R$ Taxa">
             <button onclick="lancar()">CADASTRAR E LANÇAR</button>
         </div>
-
         <div class="card" style="background: var(--dark); color: white;">
-            <h2 style="color: white; border-color: var(--success);">💰 Fechamento</h2>
-            <label><small>Início:</small></label>
-            <input type="date" id="ini">
-            <label><small>Fim:</small></label>
-            <input type="date" id="fim">
+            <h2>💰 Fechamento</h2>
+            <input type="date" id="ini"><input type="date" id="fim">
             <select id="rel-moto" style="color: black;"></select>
             <button style="background: var(--success)" onclick="relatorio()">GERAR RELATÓRIO</button>
-            <div id="res-rel" class="resumo-box" style="display:none;">
-                <p>Total Motoboy: <span id="val-moto" style="font-weight:bold; color:var(--success)"></span></p>
-                <p>Total Empresa: <span id="val-total" style="font-weight:bold;"></span></p>
+            <div id="res-rel" style="display:none; padding:10px; background:#444; border-radius:8px; margin-top:10px;">
+                <p>Receber: <span id="val-moto"></span></p>
                 <p>Viagens: <span id="val-qtd"></span></p>
-                <button class="btn-wpp" style="width:100%" onclick="compartilharRelatorio()">ENVIAR PARA MOTOBOY</button>
+                <button class="btn-wpp" style="width:100%" onclick="compartilharRelatorio()">ENVIAR RELATÓRIO</button>
             </div>
         </div>
     </div>
-
     <div class="main">
         <div class="card" id="map-card" style="padding: 5px;"><div id="map"></div></div>
         <div class="card">
             <h2>📦 Gestão de Entregas</h2>
             <div class="table-responsive">
                 <table>
-                    <thead><tr><th>Entregador/Cliente</th><th>Status</th><th>Ações</th></tr></thead>
+                    <thead><tr><th>Motoboy/Cliente</th><th>Status</th><th>Ações</th></tr></thead>
                     <tbody id="lista-pedidos"></tbody>
                 </table>
             </div>
@@ -103,112 +77,70 @@
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-    const URL_API = "https://script.google.com/macros/s/AKfycbwAA1ErhRwHKn8_WB0RIJGczognH-lozsyInvuaC9RMEBAlNZd3AT8LXS-HgDBkEfZPxg/exec";
+    const URL_API = "https://script.google.com/macros/s/AKfycbwrMBccbohCEZKRxvGgbac3WnxYEemieRlg1cHPRjTY0NU-qLhH6DLt968fwB6vlfnHWw/exec";
     const URL_MOTO_APP = "https://gustavobueno301412-bit.github.io/Valexpress/cliente.html";
 
     var map = L.map('map').setView([-22.5734, -44.9701], 14);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
     var markers = {};
-    var dadosRel = {};
     var listaMotosGlobal = [];
 
-    // LÓGICA PARA IDENTIFICAR SE É CLIENTE OU ADMIN
     const urlParams = new URLSearchParams(window.location.search);
     const modoCliente = urlParams.get('cliente') === 'true';
-    if (modoCliente) {
-        document.body.classList.add('modo-rastreio');
-    }
+    if (modoCliente) document.body.classList.add('modo-rastreio');
 
     async function init() {
         try {
             const res = await fetch(URL_API + "?action=getConfig");
             const conf = await res.json();
             listaMotosGlobal = conf.motoboys;
-
-            document.getElementById('sel-moto').innerHTML = conf.motoboys.map(m =>
-                `<option value="${m.nome}" data-zap="${m.whatsapp}">${m.nome}</option>`
-            ).join('');
-           
+            document.getElementById('sel-moto').innerHTML = conf.motoboys.map(m => `<option value="${m.nome}">${m.nome}</option>`).join('');
             document.getElementById('rel-moto').innerHTML = document.getElementById('sel-moto').innerHTML;
             document.getElementById('sel-cidade').innerHTML = conf.cidades.map(c => `<option value="${c.taxa}">${c.nome}</option>`).join('');
-           
-            atualizarTaxa();
-            carregarPedidos();
-            monitorarGps();
+            atualizarTaxa(); carregarPedidos(); monitorarGps();
             setTimeout(() => map.invalidateSize(), 800);
-        } catch(e) { console.error("Erro ao carregar configurações"); }
+        } catch(e) { console.log("Erro inicial"); }
     }
 
     function atualizarTaxa() { document.getElementById('taxa-val').value = document.getElementById('sel-cidade').value; }
 
     async function carregarPedidos() {
-        if(modoCliente) return; // Cliente não precisa carregar tabela
-        try {
-            const res = await fetch(URL_API + "?action=getAtivos");
-            const pedidos = await res.json();
-           
-            document.getElementById('lista-pedidos').innerHTML = pedidos.map(p => {
-                const motoInfo = listaMotosGlobal.find(m => m.nome === p.moto);
-                const zap = motoInfo ? motoInfo.whatsapp : "";
-
-                return `
-                <tr>
-                    <td><b>${p.moto}</b><br><small>${p.cliente}</small></td>
-                    <td><span class="status-badge ${p.status}">${p.status}</span></td>
-                    <td>
-                        <button class="btn-desp" title="Despachar" onclick="despacharParaMoto(${p.id}, '${zap}', '${p.ret}', '${p.ent}', '${p.prod}')">🚚</button>
-                        <button class="btn-wpp" title="Whats Cliente" onclick="enviarWppCliente('${p.moto}', '${p.cliente}')">📱</button>
-                        <button class="btn-del" title="Finalizar" onclick="finalizar(${p.id})">🗑️</button>
-                    </td>
-                </tr>`;
-            }).join('');
-        } catch(e) {}
-    }
-
-    async function despacharParaMoto(id, numeroWpp, ret, ent, prod) {
-        if (!numeroWpp) return alert("WhatsApp do motoboy não encontrado!");
-        let num = numeroWpp.replace(/\D/g, '');
-        if (!num.startsWith('55')) num = '55' + num;
-        await fetch(URL_API, { method: 'POST', body: JSON.stringify({acao: "updateStatus", id: id, status: 'pendente'}) });
-        const msg = `*NOVA ENTREGA - VALE EXPRESS*\n\n📦 *Produto:* ${prod}\n📍 *Retirada:* ${ret}\n🏁 *Entrega:* ${ent}\n\nAbra seu app:\n${URL_MOTO_APP}`;
-        window.open(`https://api.whatsapp.com/send?phone=${num}&text=${encodeURIComponent(msg)}`, '_blank');
-        carregarPedidos();
+        if(modoCliente) return;
+        const res = await fetch(URL_API + "?action=getAtivos");
+        const pedidos = await res.json();
+        document.getElementById('lista-pedidos').innerHTML = pedidos.map(p => {
+            const zap = listaMotosGlobal.find(m => m.nome === p.moto)?.whatsapp || "";
+            return `<tr><td><b>${p.moto}</b><br>${p.cliente}</td><td>${p.status}</td><td>
+                <button class="btn-desp" onclick="despacharParaMoto(${p.id},'${zap}','${p.ret}','${p.ent}','${p.prod}')">🚚</button>
+                <button class="btn-wpp" onclick="enviarWppCliente('${p.moto}','${p.cliente}')">📱</button>
+                <button class="btn-del" onclick="finalizar(${p.id})">🗑️</button>
+            </td></tr>`;
+        }).join('');
     }
 
     function enviarWppCliente(moto, cliente) {
-        // AQUI ESTÁ O SEGREDO: Enviamos o parâmetro cliente=true
-        const linkRastreio = window.location.href.split('?')[0] + `?cliente=true&moto=${encodeURIComponent(moto)}`;
-        const msg = `Olá ${cliente}, sua entrega com o motoboy ${moto} saiu! Acompanhe pelo mapa em tempo real: ${linkRastreio}`;
-        window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`, '_blank');
+        const link = window.location.href.split('?')[0] + `?cliente=true&moto=${encodeURIComponent(moto)}`;
+        window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent('Olá '+cliente+', acompanhe seu pedido com '+moto+': '+link)}`);
     }
 
     async function monitorarGps() {
         try {
             const res = await fetch(URL_API + "?action=getLocations");
             const locs = await res.json();
-           
-            // Se for modo cliente, opcionalmente filtramos para mostrar só o motoboy dele
             const motoFiltrada = urlParams.get('moto');
 
             locs.forEach(m => {
-                if (motoFiltrada && m.nome !== motoFiltrada) {
+                if (modoCliente && motoFiltrada && m.nome !== motoFiltrada) {
                     if(markers[m.nome]) map.removeLayer(markers[m.nome]);
                     return;
                 }
-
-                const popup = `
-                    <div class="popup-moto">
-                        <img src="${m.bike || 'https://via.placeholder.com/100'}">
-                        <b>${m.nome}</b>
-                        <p>${m.detalhes || 'Em entrega...'}</p>
-                    </div>`;
-
+                const popup = `<div class="popup-moto"><img src="${m.bike}"><b>${m.nome}</b><p>${m.detalhes}</p></div>`;
                 if (markers[m.nome]) {
                     markers[m.nome].setLatLng([m.lat, m.lng]).getPopup().setContent(popup);
                 } else {
                     let icon = L.divIcon({
-                        html: `<img src="${m.foto}" style="width:48px;height:48px;border-radius:50%;border:3px solid var(--primary);background:white;box-shadow: 0 4px 8px rgba(0,0,0,0.3);object-fit:cover;">`,
-                        className: '', iconSize:[48,48], iconAnchor:[24,48]
+                        html: `<img src="${m.foto}" style="width:40px;height:40px;border-radius:50%;border:3px solid #0984e3;object-fit:cover;">`,
+                        className: '', iconSize:[40,40], iconAnchor:[20,40]
                     });
                     markers[m.nome] = L.marker([m.lat, m.lng], {icon}).addTo(map).bindPopup(popup);
                 }
@@ -217,34 +149,14 @@
         setTimeout(monitorarGps, 5000);
     }
 
-    async function relatorio() {
-        const m = document.getElementById('rel-moto').value;
-        const i = document.getElementById('ini').value;
-        const f = document.getElementById('fim').value;
-        if(!i || !f) return alert("Selecione as datas!");
-        const res = await (await fetch(`${URL_API}?action=getRelatorio&moto=${m}&inicio=${i}&fim=${f}`)).json();
-        dadosRel = { moto: m, total: res.totalMoto, qtd: res.qtd, ini: i, fim: f };
-        document.getElementById('res-rel').style.display = 'block';
-        document.getElementById('val-moto').innerText = `R$ ${res.totalMoto.toFixed(2)}`;
-        document.getElementById('val-total').innerText = `R$ ${(res.totalMoto + (res.totalEmpresa || 0)).toFixed(2)}`;
-        document.getElementById('val-qtd').innerText = res.qtd;
-    }
-
-    function compartilharRelatorio() {
-        const msg = `*VALE EXPRESS - FECHAMENTO*\n🛵 *Motoboy:* ${dadosRel.moto}\n📅 *Período:* ${dadosRel.ini} a ${dadosRel.fim}\n✅ *Entregas:* ${dadosRel.qtd}\n💰 *VALOR A RECEBER: R$ ${dadosRel.total.toFixed(2)}*`;
-        window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`, '_blank');
-    }
-
     async function lancar() {
         const d = { acao: "novo_pedido", cliente: document.getElementById('cli').value, produto: document.getElementById('prod').value, retirada: document.getElementById('ret').value, entrega: document.getElementById('ent').value, motoboy: document.getElementById('sel-moto').value, taxa: document.getElementById('taxa-val').value, pg: document.getElementById('sel-pg').value };
-        if(!d.cliente) return alert("Preencha o cliente!");
         await fetch(URL_API, { method: 'POST', body: JSON.stringify(d) });
-        alert("Lançado!");
-        carregarPedidos();
+        alert("Lançado!"); carregarPedidos();
     }
 
     async function finalizar(id) {
-        if(confirm("Deseja finalizar esta entrega?")) {
+        if(confirm("Finalizar?")) {
             await fetch(URL_API, { method: 'POST', body: JSON.stringify({acao: "finalizar", id}) });
             carregarPedidos();
         }
@@ -254,5 +166,3 @@
 </script>
 </body>
 </html>
-
- 
