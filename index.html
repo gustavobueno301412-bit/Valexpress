@@ -90,20 +90,29 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
     const URL_API = "https://script.google.com/macros/s/AKfycbwAA1ErhRwHKn8_WB0RIJGczognH-lozsyInvuaC9RMEBAlNZd3AT8LXS-HgDBkEfZPxg/exec";
-    const URL_RASTREIO = URL_API + "?rastreio=sim";
+    // AJUSTE: Link do seu aplicativo que o motoboy vai abrir
+    const URL_MOTO_APP = "https://gustavobueno301412-bit.github.io/Valexpress/motoboy.html";
 
     var map = L.map('map').setView([-22.5734, -44.9701], 14);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
     var markers = {};
     var dadosRel = {};
+    var listaMotosGlobal = []; // Para guardar os zaps
 
     async function init() {
         try {
             const res = await fetch(URL_API + "?action=getConfig");
             const conf = await res.json();
-            document.getElementById('sel-moto').innerHTML = conf.motoboys.map(m => `<option value="${m.nome}">${m.nome}</option>`).join('');
+            listaMotosGlobal = conf.motoboys;
+
+            // Preenche o select e guarda o WhatsApp no atributo data-zap
+            document.getElementById('sel-moto').innerHTML = conf.motoboys.map(m =>
+                `<option value="${m.nome}" data-zap="${m.whatsapp}">${m.nome}</option>`
+            ).join('');
+           
             document.getElementById('rel-moto').innerHTML = document.getElementById('sel-moto').innerHTML;
             document.getElementById('sel-cidade').innerHTML = conf.cidades.map(c => `<option value="${c.taxa}">${c.nome}</option>`).join('');
+           
             atualizarTaxa();
             carregarPedidos();
             monitorarGps();
@@ -117,45 +126,49 @@
         try {
             const res = await fetch(URL_API + "?action=getAtivos");
             const pedidos = await res.json();
-            document.getElementById('lista-pedidos').innerHTML = pedidos.map(p => `
+           
+            document.getElementById('lista-pedidos').innerHTML = pedidos.map(p => {
+                // Busca o zap do motoboy na nossa lista global
+                const motoInfo = listaMotosGlobal.find(m => m.nome === p.moto);
+                const zap = motoInfo ? motoInfo.whatsapp : "";
+
+                return `
                 <tr>
                     <td><b>${p.moto}</b><br><small>${p.cliente}</small></td>
                     <td><span class="status-badge ${p.status}">${p.status}</span></td>
                     <td>
-                        <button class="btn-desp" title="Despachar" onclick="despacharParaMoto(${p.id}, '${p.whatsapp}', '${p.ret}', '${p.ent}', '${p.prod}')">🚚</button>
+                        <button class="btn-desp" title="Despachar" onclick="despacharParaMoto(${p.id}, '${zap}', '${p.ret}', '${p.ent}', '${p.prod}')">🚚</button>
                         <button class="btn-wpp" title="Whats Cliente" onclick="enviarWppCliente('${p.moto}', '${p.cliente}')">📱</button>
                         <button class="btn-del" title="Finalizar" onclick="finalizar(${p.id})">🗑️</button>
                     </td>
                 </tr>
-            `).join('');
+                `;
+            }).join('');
         } catch(e) {}
     }
 
     async function despacharParaMoto(id, numeroWpp, ret, ent, prod) {
-        // 1. Limpa o número e coloca 55 (Brasil) automático
-        let num = numeroWpp.toString().replace(/\D/g, '');
-        if (!num.startsWith('55') && num.length > 0) { num = '55' + num; }
+        if (!numeroWpp || numeroWpp === "") {
+            alert("Erro: WhatsApp do motoboy não encontrado na Coluna J!");
+            return;
+        }
 
-        // 2. Atualiza status na planilha
+        let num = numeroWpp.replace(/\D/g, '');
+        if (!num.startsWith('55')) num = '55' + num;
+
+        // Atualiza para pendente
         await fetch(URL_API, { method: 'POST', body: JSON.stringify({acao: "updateStatus", id: id, status: 'pendente'}) });
        
-        // 3. Link do App Motoboy (unificado)
-        const linkAppMoto = URL_API + "?app=moto";
-        const msg = `*NOVA ENTREGA - VALE EXPRESS*\n\n📦 *Produto:* ${prod}\n📍 *Retirada:* ${ret}\n🏁 *Entrega:* ${ent}\n\nClique no link para abrir o seu aplicativo e ligar o GPS:\n${linkAppMoto}`;
+        const msg = `*NOVA ENTREGA - VALE EXPRESS*\n\n📦 *Produto:* ${prod}\n📍 *Retirada:* ${ret}\n🏁 *Entrega:* ${ent}\n\nAbra seu app para iniciar:\n${URL_MOTO_APP}`;
 
-        // 4. Abre o WhatsApp do motoboy selecionado
-        if(num.length > 5) {
-            window.open(`https://api.whatsapp.com/send?phone=${num}&text=${encodeURIComponent(msg)}`, '_blank');
-        } else {
-            alert("WhatsApp do motoboy não cadastrado na Coluna J!");
-        }
-       
+        window.open(`https://api.whatsapp.com/send?phone=${num}&text=${encodeURIComponent(msg)}`, '_blank');
         carregarPedidos();
     }
 
     function enviarWppCliente(moto, cliente) {
-        const link = `${URL_RASTREIO}&moto=${encodeURIComponent(moto)}`;
-        const msg = `Olá ${cliente}, sua entrega saiu! Acompanhe pelo mapa: ${link}`;
+        // Link de rastreio para o seu GitHub
+        const linkRastreio = `https://gustavobueno301412-bit.github.io/Valexpress/cliente.html?moto=${encodeURIComponent(moto)}`;
+        const msg = `Olá ${cliente}, sua entrega saiu! Acompanhe pelo mapa: ${linkRastreio}`;
         window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`, '_blank');
     }
 
@@ -184,10 +197,8 @@
         const i = document.getElementById('ini').value;
         const f = document.getElementById('fim').value;
         if(!i || !f) return alert("Selecione as datas!");
-
         const res = await (await fetch(`${URL_API}?action=getRelatorio&moto=${m}&inicio=${i}&fim=${f}`)).json();
         dadosRel = { moto: m, total: res.totalMoto, qtd: res.qtd, ini: i, fim: f };
-
         document.getElementById('res-rel').style.display = 'block';
         document.getElementById('val-moto').innerText = `R$ ${res.totalMoto.toFixed(2)}`;
         document.getElementById('val-total').innerText = `R$ ${(res.totalMoto + (res.totalEmpresa || 0)).toFixed(2)}`;
