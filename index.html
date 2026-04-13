@@ -11,27 +11,24 @@
         .container { display: flex; flex-direction: column; gap: 15px; padding: 10px; }
         @media (min-width: 992px) {
             .container { display: grid; grid-template-columns: 350px 1fr; padding: 20px; height: 100vh; box-sizing: border-box; }
-            .sidebar { overflow-y: auto; padding-right: 10px; }
+            .sidebar { overflow-y: auto; }
         }
         body.modo-rastreio .sidebar, body.modo-rastreio .card:not(#map-card), body.modo-rastreio h2 { display: none !important; }
         body.modo-rastreio .container { display: block; padding: 0; }
-        body.modo-rastreio #map-card { padding: 0; border-radius: 0; margin: 0; }
         body.modo-rastreio #map { height: 100vh; width: 100vw; border-radius: 0; }
         .card { background: white; padding: 15px; border-radius: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); margin-bottom: 10px; }
-        h2 { font-size: 1.2rem; margin: 0 0 15px 0; border-left: 4px solid var(--primary); padding-left: 10px; color: var(--dark); }
-        input, select, button { width: 100%; padding: 12px; margin: 6px 0; border-radius: 8px; border: 1px solid #ddd; font-size: 16px; box-sizing: border-box; }
+        h2 { font-size: 1.1rem; margin-bottom: 10px; border-left: 4px solid var(--primary); padding-left: 10px; }
+        input, select, button { width: 100%; padding: 12px; margin: 5px 0; border-radius: 8px; border: 1px solid #ddd; font-size: 15px; box-sizing: border-box; }
         button { background: var(--primary); color: white; border: none; font-weight: bold; cursor: pointer; }
-        #map { height: 350px; width: 100%; border-radius: 12px; z-index: 1; }
-        @media (min-width: 992px) { #map { height: 550px; } }
-        .table-responsive { width: 100%; overflow-x: auto; }
-        table { width: 100%; border-collapse: collapse; min-width: 450px; }
-        th, td { text-align: left; padding: 12px; border-bottom: 1px solid #eee; font-size: 13px; }
-        .btn-desp { background: #6c5ce7; width: auto; padding: 8px 10px; }
-        .btn-wpp { background: var(--whatsapp); width: auto; padding: 8px 10px; }
-        .btn-del { background: #ff7675; width: auto; padding: 8px 10px; }
-        .status-badge { padding: 4px 8px; border-radius: 20px; font-size: 10px; font-weight: bold; }
-        .popup-moto { text-align: center; }
-        .popup-moto img { width: 120px; border-radius: 8px; }
+        #map { height: 350px; width: 100%; border-radius: 12px; z-index: 1; background: #eee; }
+        @media (min-width: 992px) { #map { height: 500px; } }
+        .table-responsive { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        th, td { padding: 10px; border-bottom: 1px solid #eee; text-align: left; }
+        .btn-desp { background: #6c5ce7; width: auto; padding: 5px 10px; margin-right: 2px; }
+        .btn-wpp { background: var(--whatsapp); width: auto; padding: 5px 10px; margin-right: 2px; }
+        .btn-del { background: #ff7675; width: auto; padding: 5px 10px; }
+        .popup-moto img { width: 100px; border-radius: 5px; display: block; margin: 5px auto; }
     </style>
 </head>
 <body>
@@ -39,35 +36,34 @@
     <div class="sidebar">
         <div class="card">
             <h2>🚀 Novo Pedido</h2>
-            <input type="text" id="cli" placeholder="Nome do Cliente">
+            <input type="text" id="cli" placeholder="Cliente">
             <input type="text" id="prod" placeholder="Produto">
-            <input type="text" id="ret" placeholder="Local de Retirada">
-            <input type="text" id="ent" placeholder="Local de Entrega">
-            <select id="sel-cidade" onchange="atualizarTaxa()"></select>
+            <input type="text" id="ret" placeholder="Retirada">
+            <input type="text" id="ent" placeholder="Entrega">
+            <select id="sel-cidade" onchange="document.getElementById('taxa-val').value=this.value"></select>
             <select id="sel-moto"></select>
-            <select id="sel-pg"><option value="Pix">Pix</option><option value="Dinheiro">Dinheiro</option></select>
             <input type="number" id="taxa-val" placeholder="R$ Taxa">
-            <button onclick="lancar()">CADASTRAR E LANÇAR</button>
+            <button onclick="lancar()">LANÇAR PEDIDO</button>
         </div>
         <div class="card" style="background: var(--dark); color: white;">
-            <h2>💰 Fechamento</h2>
+            <h2 style="color:white">💰 Fechamento</h2>
             <input type="date" id="ini"><input type="date" id="fim">
-            <select id="rel-moto" style="color: black;"></select>
-            <button style="background: var(--success)" onclick="relatorio()">GERAR RELATÓRIO</button>
-            <div id="res-rel" style="display:none; padding:10px; background:#444; border-radius:8px; margin-top:10px;">
-                <p>Receber: <span id="val-moto"></span></p>
-                <p>Viagens: <span id="val-qtd"></span></p>
+            <select id="rel-moto" style="color:black"></select>
+            <button style="background:var(--success)" onclick="relatorio()">GERAR RELATÓRIO</button>
+            <div id="res-rel" style="display:none; margin-top:10px; padding:10px; background:#444; border-radius:8px">
+                <p>Receber: <span id="val-moto" style="color:var(--success); font-weight:bold"></span></p>
+                <p>Qtd: <span id="val-qtd"></span></p>
                 <button class="btn-wpp" style="width:100%" onclick="compartilharRelatorio()">ENVIAR RELATÓRIO</button>
             </div>
         </div>
     </div>
     <div class="main">
-        <div class="card" id="map-card" style="padding: 5px;"><div id="map"></div></div>
+        <div class="card" id="map-card" style="padding:5px"><div id="map"></div></div>
         <div class="card">
-            <h2>📦 Gestão de Entregas</h2>
+            <h2>📦 Pedidos Ativos</h2>
             <div class="table-responsive">
                 <table>
-                    <thead><tr><th>Motoboy/Cliente</th><th>Status</th><th>Ações</th></tr></thead>
+                    <thead><tr><th>Moto/Cli</th><th>Status</th><th>Ações</th></tr></thead>
                     <tbody id="lista-pedidos"></tbody>
                 </table>
             </div>
@@ -77,37 +73,32 @@
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-    const URL_API = "https://script.google.com/macros/s/AKfycbwrMBccbohCEZKRxvGgbac3WnxYEemieRlg1cHPRjTY0NU-qLhH6DLt968fwB6vlfnHWw/exec";
+    const URL_API = "https://script.google.com/macros/s/AKfycbz9OmAX5jM-FsXdr7hVHvonaoIcms2pZLlSl0_YgSENn6vG-O-O4r4aXppdVg_MGg_t2w/exec";
     const URL_MOTO_APP = "https://gustavobueno301412-bit.github.io/Valexpress/cliente.html";
 
     var map = L.map('map').setView([-22.5734, -44.9701], 14);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
-    var markers = {};
-    var listaMotosGlobal = [];
+    var markers = {}, listaMotosGlobal = [], dadosRel = {};
 
     const urlParams = new URLSearchParams(window.location.search);
     const modoCliente = urlParams.get('cliente') === 'true';
     if (modoCliente) document.body.classList.add('modo-rastreio');
 
     async function init() {
-        try {
-            const res = await fetch(URL_API + "?action=getConfig");
-            const conf = await res.json();
-            listaMotosGlobal = conf.motoboys;
-            document.getElementById('sel-moto').innerHTML = conf.motoboys.map(m => `<option value="${m.nome}">${m.nome}</option>`).join('');
-            document.getElementById('rel-moto').innerHTML = document.getElementById('sel-moto').innerHTML;
-            document.getElementById('sel-cidade').innerHTML = conf.cidades.map(c => `<option value="${c.taxa}">${c.nome}</option>`).join('');
-            atualizarTaxa(); carregarPedidos(); monitorarGps();
-            setTimeout(() => map.invalidateSize(), 800);
-        } catch(e) { console.log("Erro inicial"); }
+        const res = await (await fetch(URL_API + "?action=getConfig")).json();
+        listaMotosGlobal = res.motoboys;
+        const opts = res.motoboys.map(m => `<option value="${m.nome}">${m.nome}</option>`).join('');
+        document.getElementById('sel-moto').innerHTML = opts;
+        document.getElementById('rel-moto').innerHTML = opts;
+        document.getElementById('sel-cidade').innerHTML = res.cidades.map(c => `<option value="${c.taxa}">${c.nome}</option>`).join('');
+        document.getElementById('taxa-val').value = document.getElementById('sel-cidade').value;
+        carregarPedidos(); monitorarGps();
+        setTimeout(() => map.invalidateSize(), 800);
     }
-
-    function atualizarTaxa() { document.getElementById('taxa-val').value = document.getElementById('sel-cidade').value; }
 
     async function carregarPedidos() {
         if(modoCliente) return;
-        const res = await fetch(URL_API + "?action=getAtivos");
-        const pedidos = await res.json();
+        const pedidos = await (await fetch(URL_API + "?action=getAtivos")).json();
         document.getElementById('lista-pedidos').innerHTML = pedidos.map(p => {
             const zap = listaMotosGlobal.find(m => m.nome === p.moto)?.whatsapp || "";
             return `<tr><td><b>${p.moto}</b><br>${p.cliente}</td><td>${p.status}</td><td>
@@ -118,51 +109,66 @@
         }).join('');
     }
 
+    async function despacharParaMoto(id, zap, ret, ent, prod) {
+        if(!zap) return alert("Sem WhatsApp cadastrado!");
+        await fetch(URL_API, { method:'POST', mode:'no-cors', body:JSON.stringify({acao:"updateStatus", id:id, status:'pendente'})});
+        const msg = `*VALE EXPRESS*\n📦 ${prod}\n📍 Retirada: ${ret}\n🏁 Entrega: ${ent}\n🔗 App: ${URL_MOTO_APP}`;
+        window.open(`https://api.whatsapp.com/send?phone=55${zap}&text=${encodeURIComponent(msg)}`);
+        setTimeout(carregarPedidos, 1500);
+    }
+
     function enviarWppCliente(moto, cliente) {
         const link = window.location.href.split('?')[0] + `?cliente=true&moto=${encodeURIComponent(moto)}`;
-        window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent('Olá '+cliente+', acompanhe seu pedido com '+moto+': '+link)}`);
+        window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent('Olá '+cliente+', seu pedido com '+moto+' pode ser rastreado aqui: '+link)}`);
     }
 
     async function monitorarGps() {
         try {
-            const res = await fetch(URL_API + "?action=getLocations");
-            const locs = await res.json();
+            const locs = await (await fetch(URL_API + "?action=getLocations")).json();
             const motoFiltrada = urlParams.get('moto');
-
             locs.forEach(m => {
                 if (modoCliente && motoFiltrada && m.nome !== motoFiltrada) {
-                    if(markers[m.nome]) map.removeLayer(markers[m.nome]);
-                    return;
+                    if(markers[m.nome]) map.removeLayer(markers[m.nome]); return;
                 }
-                const popup = `<div class="popup-moto"><img src="${m.bike}"><b>${m.nome}</b><p>${m.detalhes}</p></div>`;
+                const popup = `<div class="popup-moto"><img src="${m.bike}" onerror="this.src='https://via.placeholder.com/100?text=Moto'"><b>${m.nome}</b><br>${m.detalhes}</div>`;
                 if (markers[m.nome]) {
                     markers[m.nome].setLatLng([m.lat, m.lng]).getPopup().setContent(popup);
                 } else {
-                    let icon = L.divIcon({
-                        html: `<img src="${m.foto}" style="width:40px;height:40px;border-radius:50%;border:3px solid #0984e3;object-fit:cover;">`,
-                        className: '', iconSize:[40,40], iconAnchor:[20,40]
-                    });
+                    let icon = L.divIcon({ html: `<img src="${m.foto}" onerror="this.src='https://cdn-icons-png.flaticon.com/512/718/718156.png'" style="width:40px;height:40px;border-radius:50%;border:3px solid #0984e3;object-fit:cover;">`, className: '', iconSize:[40,40], iconAnchor:[20,40] });
                     markers[m.nome] = L.marker([m.lat, m.lng], {icon}).addTo(map).bindPopup(popup);
                 }
             });
-        } catch(e) {}
+        } catch(e){}
         setTimeout(monitorarGps, 5000);
     }
 
+    async function relatorio() {
+        const m = document.getElementById('rel-moto').value, i = document.getElementById('ini').value, f = document.getElementById('fim').value;
+        if(!i || !f) return alert("Selecione as datas!");
+        const res = await (await fetch(`${URL_API}?action=getRelatorio&moto=${m}&inicio=${i}&fim=${f}`)).json();
+        dadosRel = { moto:m, total:res.totalMoto, qtd:res.qtd, ini:i, fim:f };
+        document.getElementById('res-rel').style.display='block';
+        document.getElementById('val-moto').innerText = `R$ ${res.totalMoto.toFixed(2)}`;
+        document.getElementById('val-qtd').innerText = res.qtd;
+    }
+
+    function compartilharRelatorio() {
+        const msg = `*VALE EXPRESS - FECHAMENTO*\n🛵 ${dadosRel.moto}\n📅 ${dadosRel.ini} a ${dadosRel.fim}\n✅ Entregas: ${dadosRel.qtd}\n💰 *RECEBER: R$ ${dadosRel.total.toFixed(2)}*`;
+        window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`);
+    }
+
     async function lancar() {
-        const d = { acao: "novo_pedido", cliente: document.getElementById('cli').value, produto: document.getElementById('prod').value, retirada: document.getElementById('ret').value, entrega: document.getElementById('ent').value, motoboy: document.getElementById('sel-moto').value, taxa: document.getElementById('taxa-val').value, pg: document.getElementById('sel-pg').value };
-        await fetch(URL_API, { method: 'POST', body: JSON.stringify(d) });
+        const d = { acao:"novo_pedido", cliente:document.getElementById('cli').value, produto:document.getElementById('prod').value, retirada:document.getElementById('ret').value, entrega:document.getElementById('ent').value, motoboy:document.getElementById('sel-moto').value, taxa:document.getElementById('taxa-val').value, pg:"Pix" };
+        await fetch(URL_API, { method:'POST', body:JSON.stringify(d) });
         alert("Lançado!"); carregarPedidos();
     }
 
     async function finalizar(id) {
-        if(confirm("Finalizar?")) {
-            await fetch(URL_API, { method: 'POST', body: JSON.stringify({acao: "finalizar", id}) });
-            carregarPedidos();
-        }
+        if(confirm("Finalizar?")) { await fetch(URL_API, { method:'POST', body:JSON.stringify({acao:"finalizar", id}) }); carregarPedidos(); }
     }
-
     init();
 </script>
 </body>
 </html>
+
+ 
