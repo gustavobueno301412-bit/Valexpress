@@ -79,7 +79,7 @@
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-    const URL_API = "https://script.google.com/macros/s/AKfycbwNiHBHF-1Ste7fIkYKIlypxX-rLH_vRIn7eUxZJBBkqblsgwIM2e8EcwsdIAQVKmIaug/exec";
+    const URL_API = "https://script.google.com/macros/s/AKfycbyKAjP23CNKJ6VqtmBA4ayQcp7qnMxBmmU-ItDQz4HgXOf7ZmPHcu5PWeJuXHsGv0Fskg/exec";
 
     var map = L.map('map').setView([-22.5734, -44.9701], 14);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
@@ -119,27 +119,41 @@
     }
 
     async function monitorarGps() {
-        try {
-            const locs = await (await fetch(URL_API + "?action=getLocations")).json();
-            const motoFiltrada = urlParams.get('moto');
-            locs.forEach(m => {
-                if (modoCliente && motoFiltrada && m.nome !== motoFiltrada) {
-                    if(markers[m.nome]) map.removeLayer(markers[m.nome]); return;
+    try {
+        const res = await fetch(URL_API + "?action=getLocations");
+        const locs = await res.json();
+        const motoFiltrada = urlParams.get('moto');
+
+        locs.forEach(m => {
+            if (modoCliente && motoFiltrada && m.nome !== motoFiltrada) {
+                if(markers[m.nome]) {
+                    map.removeLayer(markers[m.nome]);
+                    delete markers[m.nome];
                 }
-                const popup = `<div class="popup-moto"><img src="${m.bike}"><b>${m.nome}</b><br>${m.detalhes}</div>`;
-                let icon = L.divIcon({
-                    html: `<img src="${m.foto}" style="width:40px;height:40px;border-radius:50%;border:3px solid #0984e3;object-fit:cover;">`,
-                    className: '', iconSize:[40,40], iconAnchor:[20,40], popupAnchor:[0,-40]
-                });
-                if (markers[m.nome]) {
-                    markers[m.nome].setLatLng([m.lat, m.lng]).getPopup().setContent(popup);
-                } else {
-                    markers[m.nome] = L.marker([m.lat, m.lng], {icon}).addTo(map).bindPopup(popup);
-                }
+                return;
+            }
+
+            const popup = `<div class="popup-moto"><img src="${m.bike}"><b>${m.nome}</b><br>${m.detalhes}</div>`;
+            let icon = L.divIcon({
+                html: `<img src="${m.foto}" style="width:40px;height:40px;border-radius:50%;border:3px solid #0984e3;object-fit:cover;">`,
+                className: '', iconSize:[40,40], iconAnchor:[20,40], popupAnchor:[0,-40]
             });
-        } catch(e){}
-        setTimeout(monitorarGps, 5000);
-    }
+
+            if (markers[m.nome]) {
+                // ISSO FAZ ANDAR: Em vez de criar um novo, move o existente
+                markers[m.nome].setLatLng([m.lat, m.lng]);
+                markers[m.nome].getPopup().setContent(popup);
+            } else {
+                // Cria se não existir
+                markers[m.nome] = L.marker([m.lat, m.lng], {icon}).addTo(map).bindPopup(popup);
+            }
+        });
+    } catch(e){ console.error("Erro GPS:", e); }
+    setTimeout(monitorarGps, 5000); // 5 segundos é o tempo ideal para Cruzeiro
+}
+
+ 
+
 
     async function relatorio() {
         const m = document.getElementById('rel-moto').value;
