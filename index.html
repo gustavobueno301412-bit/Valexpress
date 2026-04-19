@@ -41,17 +41,17 @@
             <select id="sel-moto"></select>
             <input type="number" id="taxa-val" placeholder="R$ Taxa">
             <select id="sel-pg">
-                <option value="Pix">Pix</option>
-                <option value="Dinheiro">Dinheiro</option>
-                <option value="Cartão">Cartão</option>
+                <option value="Pix">📲 Pix</option>
+                <option value="Dinheiro">💰 Dinheiro</option>
+                <option value="Cartão">💳 Cartão</option>
             </select>
-            <button onclick="lancar()">🚀 LANÇAR PEDIDO</button>
+            <button onclick="lancar()">📬 LANÇAR PEDIDO</button>
         </div>
         <div class="card" style="background: var(--dark); color: white;">
             <h2 style="color:white">💰 Fechamento</h2>
             <input type="date" id="ini"><input type="date" id="fim">
             <select id="rel-moto" style="color:black"></select>
-            <button style="background:var(--success)" onclick="relatorio()">GERAR RELATÓRIO</button>
+            <button style="background:var(--success)" onclick="relatorio()">📈 GERAR RELATÓRIO</button>
             <div id="res-rel" style="display:none; margin-top:10px; padding:10px; background:#444; border-radius:8px">
                 <p>Pix: <span id="val-pix" style="color:var(--success)">R$ 0.00</span> (<span id="qtd-pix">0</span>)</p>
                 <p>Dinheiro: <span id="val-din" style="color:var(--success)">R$ 0.00</span> (<span id="qtd-din">0</span>)</p>
@@ -59,7 +59,7 @@
                 <hr>
                 <p>Total Geral: <span id="val-moto" style="color:var(--success); font-weight:bold">R$ 0.00</span></p>
                 <p>Qtd Total: <span id="val-qtd">0</span></p>
-                <button class="btn-wpp" style="width:100%" onclick="compartilharRelatorio()">ENVIAR RELATÓRIO</button>
+                <button class="btn-wpp" style="width:100%" onclick="compartilharRelatorio()">🚀 ENVIAR RELATÓRIO</button>
             </div>
         </div>
     </div>

@@ -18,14 +18,14 @@
 <body>
     <div class="header"><h2>🛵 VALE EXPRESS - MOTOBOY 📦</h2></div>
   
-    <label>QUEM É VOCÊ?</label>
+    <label>🤔 QUEM É VOCÊ?</label>
     <select id="moto-nome" onchange="iniciarSessao()">
         <option value="">Selecione seu nome...</option>
     </select>
 
     <div id="lista" style="margin-top: 20px;"></div>
     <div id="gps-info" class="gps-status">GPS inativo. Escolha seu nome para iniciar.</div>
-
+ 
 <script>
     const URL_API = "https://script.google.com/macros/s/AKfycbyKAjP23CNKJ6VqtmBA4ayQcp7qnMxBmmU-ItDQz4HgXOf7ZmPHcu5PWeJuXHsGv0Fskg/exec";
     let meuNome = "";
@@ -69,9 +69,9 @@
                     <h3 style="margin:5px 0; color:#0984e3;">📦 ${p.produto}</h3>
                     <p>📍 <b>Retirada:</b> ${p.ret}<br>🏁 <b>Entrega:</b> ${p.ent}</p>
                     <p style="background:#333; padding:5px; border-radius:5px;">Status: <b>${p.status.toUpperCase()}</b></p>
-                    <button class="btn btn-status" onclick="mudarStatus(${p.id}, 'Saindo p/ Coleta')">🛵 SAINDO P/ COLETA</button>
-                    <button class="btn btn-status" style="background:#9b59b6" onclick="mudarStatus(${p.id}, 'Entrega em curso')">🚀 EM ENTREGA</button>
-                    <button class="btn btn-check" onclick="mudarStatus(${p.id}, 'finalizado')">✅ CONCLUÍDO</button>
+                    <button class="btn btn-status" onclick="mudarStatus(${p.id}, '🛵 A Caminho')">🛵 A Caminho</button>
+                    <button class="btn btn-status" style="background:#9b59b6" onclick="mudarStatus(${p.id}, '📦 Pedido Coletado')">📦 Pedido Coletado</button>
+                    <button class="btn btn-check" onclick="mudarStatus(${p.id}, 'finalizado')">✅ Pedido Entregue</button>
                 </div>
             `;
         });
