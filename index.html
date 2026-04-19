@@ -216,8 +216,17 @@
     async function finalizar(id) { if(confirm("Finalizar?")) { await fetch(URL_API, { method:'POST', body:JSON.stringify({acao:"finalizar", id}) }); carregarPedidos(); } }
     async function despacharParaMoto(id, zap, ret, ent, prod) {
         if(!zap) return alert("Sem WhatsApp!");
+       
+        // Link do aplicativo do motoboy que você me passou
+        const linkAppMotoboy = "https://gustavobueno301412-bit.github.io/Valexpress/cliente.html";
+       
         await fetch(URL_API, { method:'POST', mode:'no-cors', body:JSON.stringify({acao:"updateStatus", id:id, status:'pendente'})});
-        window.open(`https://api.whatsapp.com/send?phone=55${zap}&text=${encodeURIComponent('*VALE EXPRESS*\n📦 '+prod+'\n📍 '+ret+'\n🏁 '+ent)}`);
+       
+        // Mensagem atualizada incluindo o link no final
+        const mensagem = `*VALE EXPRESS*\n📦 ${prod}\n📍 ${ret}\n🏁 ${ent}\n\n📲 *Abrir no Aplicativo:* \n${linkAppMotoboy}`;
+       
+        window.open(`https://api.whatsapp.com/send?phone=55${zap}&text=${encodeURIComponent(mensagem)}`);
+       
         setTimeout(carregarPedidos, 1500);
     }
     function enviarWppCliente(moto, cliente) {
