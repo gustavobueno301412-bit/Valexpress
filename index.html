@@ -26,6 +26,10 @@
         .btn-del { background: #ff7675; width: auto; padding: 5px 10px; }
         .popup-moto { text-align: center; min-width: 120px; }
         .popup-moto img { width: 100px; height: 70px; border-radius: 5px; object-fit: cover; margin: 5px auto; display: block; }
+        /* Estilo do novo campo de quantidade */
+        .qtd-container { display: flex; align-items: center; gap: 10px; background: #eef2f7; padding: 5px 10px; border-radius: 8px; margin: 5px 0; }
+        .qtd-container label { font-size: 14px; font-weight: bold; color: var(--dark); }
+        #qtd-ped { width: 80px; text-align: center; border: 2px solid var(--primary); }
     </style>
 </head>
 <body>
@@ -39,7 +43,13 @@
             <input type="text" id="ent" placeholder="Entrega">
             <select id="sel-cidade" onchange="document.getElementById('taxa-val').value=this.value"></select>
             <select id="sel-moto"></select>
-            <input type="number" id="taxa-val" placeholder="R$ Taxa">
+           
+            <div class="qtd-container">
+                <label>✖️ QUANTIDADE:</label>
+                <input type="number" id="qtd-ped" value="1" min="1">
+            </div>
+
+            <input type="number" id="taxa-val" placeholder="R$ Taxa Unitária">
             <select id="sel-pg">
                 <option value="Pix">📲 Pix</option>
                 <option value="Dinheiro">💰 Dinheiro</option>
@@ -79,7 +89,7 @@
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-    const URL_API = "https://script.google.com/macros/s/AKfycbyowVZL8dOwr0xXeFLmNL-MvObLQpEVVgPrI8perMhJYZn7JbEst3pDmMB8jvaJ-SIZaA/exec";
+    const URL_API = "https://script.google.com/macros/s/AKfycbyKAjP23CNKJ6VqtmBA4ayQcp7qnMxBmmU-ItDQz4HgXOf7ZmPHcu5PWeJuXHsGv0Fskg/exec";
 
     var map = L.map('map').setView([-22.5734, -44.9701], 14);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
@@ -119,75 +129,74 @@
     }
 
     async function monitorarGps() {
-    try {
-        const res = await fetch(URL_API + "?action=getLocations");
-        const locs = await res.json();
-        const motoFiltrada = urlParams.get('moto');
+        try {
+            const res = await fetch(URL_API + "?action=getLocations");
+            const locs = await res.json();
+            const motoFiltrada = urlParams.get('moto');
 
-        locs.forEach(m => {
-            if (modoCliente && motoFiltrada && m.nome !== motoFiltrada) {
-                if(markers[m.nome]) {
-                    map.removeLayer(markers[m.nome]);
-                    delete markers[m.nome];
+            locs.forEach(m => {
+                if (modoCliente && motoFiltrada && m.nome !== motoFiltrada) return;
+                const popup = `<div class="popup-moto"><img src="${m.bike}"><b>${m.nome}</b><br>${m.detalhes}</div>`;
+                let icon = L.divIcon({
+                    html: `<img src="${m.foto}" style="width:40px;height:40px;border-radius:50%;border:3px solid #0984e3;object-fit:cover;">`,
+                    className: '', iconSize:[40,40], iconAnchor:[20,40], popupAnchor:[0,-40]
+                });
+                if (markers[m.nome]) {
+                    markers[m.nome].setLatLng([m.lat, m.lng]).getPopup().setContent(popup);
+                } else {
+                    markers[m.nome] = L.marker([m.lat, m.lng], {icon}).addTo(map).bindPopup(popup);
                 }
-                return;
-            }
-
-            const popup = `<div class="popup-moto"><img src="${m.bike}"><b>${m.nome}</b><br>${m.detalhes}</div>`;
-            let icon = L.divIcon({
-                html: `<img src="${m.foto}" style="width:40px;height:40px;border-radius:50%;border:3px solid #0984e3;object-fit:cover;">`,
-                className: '', iconSize:[40,40], iconAnchor:[20,40], popupAnchor:[0,-40]
             });
+        } catch(e){}
+        setTimeout(monitorarGps, 5000);
+    }
 
-            if (markers[m.nome]) {
-                // ISSO FAZ ANDAR: Em vez de criar um novo, move o existente
-                markers[m.nome].setLatLng([m.lat, m.lng]);
-                markers[m.nome].getPopup().setContent(popup);
-            } else {
-                // Cria se não existir
-                markers[m.nome] = L.marker([m.lat, m.lng], {icon}).addTo(map).bindPopup(popup);
-            }
-        });
-    } catch(e){ console.error("Erro GPS:", e); }
-    setTimeout(monitorarGps, 5000); // 5 segundos é o tempo ideal para Cruzeiro
-}
+    // FUNÇÃO LANÇAR ATUALIZADA COM O CÁLCULO
+    async function lancar() {
+        const cli = document.getElementById('cli').value;
+        const prod = document.getElementById('prod').value;
+        const taxaBase = parseFloat(document.getElementById('taxa-val').value) || 0;
+        const qtd = parseInt(document.getElementById('qtd-ped').value) || 1;
+       
+        // CÁLCULO ANTES DE ENVIAR
+        const taxaCalculada = taxaBase * qtd;
 
- 
+        const d = {
+            acao:"novo_pedido",
+            cliente: cli + (qtd > 1 ? " [" + qtd + " Entregas]" : ""),
+            produto: prod,
+            retirada: document.getElementById('ret').value,
+            entrega: document.getElementById('ent').value,
+            motoboy: document.getElementById('sel-moto').value,
+            taxa: taxaCalculada, // Envia o valor já multiplicado (ex: 18.00)
+            pg: document.getElementById('sel-pg').value
+        };
 
+        if(confirm("Confirmar lançamento de R$ " + taxaCalculada.toFixed(2) + "?")) {
+            await fetch(URL_API, { method:'POST', body:JSON.stringify(d) });
+            alert("Lançado!");
+            carregarPedidos();
+            document.getElementById('qtd-ped').value = 1; // Reseta para 1
+        }
+    }
 
     async function relatorio() {
         const m = document.getElementById('rel-moto').value;
         const i = document.getElementById('ini').value;
         const f = document.getElementById('fim').value;
-
-        if(!i || !f) { alert("Escolha as datas!"); return; }
-
-        // RESETANDO TELA
+        if(!i || !f) return alert("Datas!");
         document.getElementById('res-rel').style.display='block';
-        document.getElementById('val-pix').innerText = "Carregando...";
-
         try {
-            const finalURL = `${URL_API}?action=getRelatorio&moto=${encodeURIComponent(m)}&inicio=${i}&fim=${f}`;
-            const res = await (await fetch(finalURL)).json();
-           
+            const res = await (await fetch(`${URL_API}?action=getRelatorio&moto=${encodeURIComponent(m)}&inicio=${i}&fim=${f}`)).json();
             let tPix=0, qPix=0, tDin=0, qDin=0, tCar=0, qCar=0;
-
-            if(res.viagens && Array.isArray(res.viagens)) {
-                res.viagens.forEach(v => {
-                    let val = parseFloat(v.valor) || 0;
-                    let pg = String(v.pagamento || "").trim().toLowerCase();
-
-                    // Normalizando a string (removendo acentos)
-                    pg = pg.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-
-                    if(pg === "pix") { tPix += val; qPix++; }
-                    else if(pg === "dinheiro") { tDin += val; qDin++; }
-                    else if(pg === "cartao") { tCar += val; qCar++; }
-                });
-            }
-
+            res.viagens.forEach(v => {
+                let val = parseFloat(v.valor) || 0;
+                let pg = String(v.pagamento || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+                if(pg === "pix") { tPix += val; qPix++; }
+                else if(pg === "dinheiro") { tDin += val; qDin++; }
+                else if(pg === "cartao") { tCar += val; qCar++; }
+            });
             dadosRel = { moto:m, total:(tPix+tDin+tCar), qtd:(qPix+qDin+qCar), ini:i, fim:f, pix:tPix, qPix:qPix, din:tDin, qDin:qDin, cart:tCar, qCar:qCar };
-
             document.getElementById('val-pix').innerText = "R$ " + tPix.toFixed(2);
             document.getElementById('qtd-pix').innerText = qPix;
             document.getElementById('val-din').innerText = "R$ " + tDin.toFixed(2);
@@ -196,46 +205,31 @@
             document.getElementById('qtd-cart').innerText = qCar;
             document.getElementById('val-moto').innerText = "R$ " + dadosRel.total.toFixed(2);
             document.getElementById('val-qtd').innerText = dadosRel.qtd;
-
-        } catch(e) {
-            alert("Erro ao buscar dados. Verifique sua conexão.");
-            console.error(e);
-        }
+        } catch(e){}
     }
 
     function compartilharRelatorio() {
-        const msg = `*VALE EXPRESS - FECHAMENTO*\n🛵 ${dadosRel.moto}\n📅 ${dadosRel.ini} a ${dadosRel.fim}\n\n📱 Pix: R$ ${dadosRel.pix.toFixed(2)} (${dadosRel.qPix})\n💵 Dinheiro: R$ ${dadosRel.din.toFixed(2)} (${dadosRel.qDin})\n💳 Cartão: R$ ${dadosRel.cart.toFixed(2)} (${dadosRel.qCar})\n\n✅ Total: ${dadosRel.qtd}\n💰 *TOTAL GERAL: R$ ${dadosRel.total.toFixed(2)}*`;
+        const msg = `*VALE EXPRESS - FECHAMENTO*\n🛵 ${dadosRel.moto}\n📅 ${dadosRel.ini} a ${dadosRel.fim}\n\n📱 Pix: R$ ${dadosRel.pix.toFixed(2)}\n💵 Dinheiro: R$ ${dadosRel.din.toFixed(2)}\n💳 Cartão: R$ ${dadosRel.cart.toFixed(2)}\n\n💰 *TOTAL GERAL: R$ ${dadosRel.total.toFixed(2)}*`;
         window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`);
     }
 
-    async function lancar() {
-        const d = { acao:"novo_pedido", cliente:document.getElementById('cli').value, produto:document.getElementById('prod').value, retirada:document.getElementById('ret').value, entrega:document.getElementById('ent').value, motoboy:document.getElementById('sel-moto').value, taxa:document.getElementById('taxa-val').value, pg:document.getElementById('sel-pg').value };
-        await fetch(URL_API, { method:'POST', body:JSON.stringify(d) });
-        alert("Lançado!"); carregarPedidos();
-    }
     async function finalizar(id) { if(confirm("Finalizar?")) { await fetch(URL_API, { method:'POST', body:JSON.stringify({acao:"finalizar", id}) }); carregarPedidos(); } }
+   
     async function despacharParaMoto(id, zap, ret, ent, prod) {
         if(!zap) return alert("Sem WhatsApp!");
-       
-        // Link do aplicativo do motoboy que você me passou
         const linkAppMotoboy = "https://gustavobueno301412-bit.github.io/Valexpress/cliente.html";
-       
         await fetch(URL_API, { method:'POST', mode:'no-cors', body:JSON.stringify({acao:"updateStatus", id:id, status:'pendente'})});
-       
-        // Mensagem atualizada incluindo o link no final
-        const mensagem = `*VALE EXPRESS*\n📦 ${prod}\n📍 ${ret}\n🏁 ${ent}\n\n📲 *Abrir no Aplicativo:* \n${linkAppMotoboy}`;
-       
+        const mensagem = `*VALE EXPRESS*\n📦 ${prod}\n📍 ${ret}\n🏁 ${ent}\n\n📲 *App:* ${linkAppMotoboy}`;
         window.open(`https://api.whatsapp.com/send?phone=55${zap}&text=${encodeURIComponent(mensagem)}`);
-       
         setTimeout(carregarPedidos, 1500);
     }
+   
     function enviarWppCliente(moto, cliente) {
         const link = window.location.href.split('?')[0] + `?cliente=true&moto=${encodeURIComponent(moto)}`;
-        window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent('Olá '+cliente+', seu pedido com '+moto+' pode ser rastreado aqui: '+link)}`);
+        window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent('Olá '+cliente+', rastreie aqui: '+link)}`);
     }
     init();
 </script>
 </body>
 </html>
 
- 
