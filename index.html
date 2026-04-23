@@ -232,7 +232,7 @@
     function enviarWppCliente(moto, cliente) {
         const link = window.location.href.split('?')[0] + `?cliente=true&moto=${encodeURIComponent(moto)}`;
         // MENSAGEM FORMATADA COMO SOLICITADO
-        const msg = `Olá ${cliente}, rastreie aqui seu pedido que vai ser entregue pelo motoboy ${moto} 🏍️ acompanhe pelo link: ${link}`;
+        const msg = `Olá ${cliente}, rastreie aqui seu pedido que vai ser entregue pelo ${moto} 🏍️ acompanhe pelo link: ${link}`;
         window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`);
     }
     init();
