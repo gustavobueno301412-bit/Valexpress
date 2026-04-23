@@ -26,7 +26,6 @@
         .btn-del { background: #ff7675; width: auto; padding: 5px 10px; }
         .popup-moto { text-align: center; min-width: 120px; }
         .popup-moto img { width: 100px; height: 70px; border-radius: 5px; object-fit: cover; margin: 5px auto; display: block; }
-        /* Estilo do novo campo de quantidade */
         .qtd-container { display: flex; align-items: center; gap: 10px; background: #eef2f7; padding: 5px 10px; border-radius: 8px; margin: 5px 0; }
         .qtd-container label { font-size: 14px; font-weight: bold; color: var(--dark); }
         #qtd-ped { width: 80px; text-align: center; border: 2px solid var(--primary); }
@@ -136,29 +135,35 @@
 
             locs.forEach(m => {
                 if (modoCliente && motoFiltrada && m.nome !== motoFiltrada) return;
+               
                 const popup = `<div class="popup-moto"><img src="${m.bike}"><b>${m.nome}</b><br>${m.detalhes}</div>`;
-                let icon = L.divIcon({
-                    html: `<img src="${m.foto}" style="width:40px;height:40px;border-radius:50%;border:3px solid #0984e3;object-fit:cover;">`,
-                    className: '', iconSize:[40,40], iconAnchor:[20,40], popupAnchor:[0,-40]
-                });
+               
                 if (markers[m.nome]) {
+                    // SE JÁ EXISTE, APENAS ATUALIZA POSIÇÃO E CONTEÚDO (MAIS EFICIENTE)
                     markers[m.nome].setLatLng([m.lat, m.lng]).getPopup().setContent(popup);
                 } else {
+                    // SE NÃO EXISTE, CRIA O ÍCONE
+                    let icon = L.divIcon({
+                        html: `<img src="${m.foto}" style="width:40px;height:40px;border-radius:50%;border:3px solid #0984e3;object-fit:cover;">`,
+                        className: '', iconSize:[40,40], iconAnchor:[20,40], popupAnchor:[0,-40]
+                    });
                     markers[m.nome] = L.marker([m.lat, m.lng], {icon}).addTo(map).bindPopup(popup);
+                }
+
+                // NO MODO CLIENTE, O MAPA SEGUE O MOTOBOY
+                if (modoCliente && motoFiltrada && m.nome === motoFiltrada) {
+                    map.panTo([m.lat, m.lng]);
                 }
             });
         } catch(e){}
         setTimeout(monitorarGps, 5000);
     }
 
-    // FUNÇÃO LANÇAR ATUALIZADA COM O CÁLCULO
     async function lancar() {
         const cli = document.getElementById('cli').value;
         const prod = document.getElementById('prod').value;
         const taxaBase = parseFloat(document.getElementById('taxa-val').value) || 0;
         const qtd = parseInt(document.getElementById('qtd-ped').value) || 1;
-       
-        // CÁLCULO ANTES DE ENVIAR
         const taxaCalculada = taxaBase * qtd;
 
         const d = {
@@ -168,7 +173,7 @@
             retirada: document.getElementById('ret').value,
             entrega: document.getElementById('ent').value,
             motoboy: document.getElementById('sel-moto').value,
-            taxa: taxaCalculada, // Envia o valor já multiplicado (ex: 18.00)
+            taxa: taxaCalculada,
             pg: document.getElementById('sel-pg').value
         };
 
@@ -176,7 +181,7 @@
             await fetch(URL_API, { method:'POST', body:JSON.stringify(d) });
             alert("Lançado!");
             carregarPedidos();
-            document.getElementById('qtd-ped').value = 1; // Reseta para 1
+            document.getElementById('qtd-ped').value = 1;
         }
     }
 
@@ -226,10 +231,13 @@
    
     function enviarWppCliente(moto, cliente) {
         const link = window.location.href.split('?')[0] + `?cliente=true&moto=${encodeURIComponent(moto)}`;
-        window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent('Olá '+cliente+', rastreie aqui: '+link)}`);
+        // MENSAGEM FORMATADA COMO SOLICITADO
+        const msg = `Olá ${cliente}, rastreie aqui seu pedido que vai ser entregue pelo motoboy ${moto} 🏍️ acompanhe pelo link: ${link}`;
+        window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`);
     }
     init();
 </script>
 </body>
 </html>
 
+ 
