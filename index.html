@@ -88,7 +88,7 @@
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-    const URL_API = "https://script.google.com/macros/s/AKfycbyKAjP23CNKJ6VqtmBA4ayQcp7qnMxBmmU-ItDQz4HgXOf7ZmPHcu5PWeJuXHsGv0Fskg/exec";
+    const URL_API = "https://script.google.com/macros/s/AKfycbw5XxNb1Xli8ixsQ9c23ktrhkof37QxZjZ2YZtnBJ-rPCDe0ZJXwV0QZ3k1sHn5D3p6Bg/exec";
 
     var map = L.map('map').setView([-22.5734, -44.9701], 14);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
@@ -139,10 +139,8 @@
                 const popup = `<div class="popup-moto"><img src="${m.bike}"><b>${m.nome}</b><br>${m.detalhes}</div>`;
                
                 if (markers[m.nome]) {
-                    // SE JÁ EXISTE, APENAS ATUALIZA POSIÇÃO E CONTEÚDO (MAIS EFICIENTE)
                     markers[m.nome].setLatLng([m.lat, m.lng]).getPopup().setContent(popup);
                 } else {
-                    // SE NÃO EXISTE, CRIA O ÍCONE
                     let icon = L.divIcon({
                         html: `<img src="${m.foto}" style="width:40px;height:40px;border-radius:50%;border:3px solid #0984e3;object-fit:cover;">`,
                         className: '', iconSize:[40,40], iconAnchor:[20,40], popupAnchor:[0,-40]
@@ -150,7 +148,6 @@
                     markers[m.nome] = L.marker([m.lat, m.lng], {icon}).addTo(map).bindPopup(popup);
                 }
 
-                // NO MODO CLIENTE, O MAPA SEGUE O MOTOBOY
                 if (modoCliente && motoFiltrada && m.nome === motoFiltrada) {
                     map.panTo([m.lat, m.lng]);
                 }
@@ -231,7 +228,6 @@
    
     function enviarWppCliente(moto, cliente) {
         const link = window.location.href.split('?')[0] + `?cliente=true&moto=${encodeURIComponent(moto)}`;
-        // MENSAGEM FORMATADA COMO SOLICITADO
         const msg = `Olá ${cliente}, rastreie aqui seu pedido que vai ser entregue pelo ${moto} 🏍️ acompanhe pelo link: ${link}`;
         window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`);
     }
