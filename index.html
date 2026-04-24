@@ -29,6 +29,16 @@
         .qtd-container { display: flex; align-items: center; gap: 10px; background: #eef2f7; padding: 5px 10px; border-radius: 8px; margin: 5px 0; }
         .qtd-container label { font-size: 14px; font-weight: bold; color: var(--dark); }
         #qtd-ped { width: 80px; text-align: center; border: 2px solid var(--primary); }
+
+        /* ESTILOS DO NOVO MODAL */
+        .modal-rel { display: none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); }
+        .modal-content { background: white; margin: 5% auto; padding: 20px; width: 90%; max-width: 850px; border-radius: 15px; max-height: 85vh; overflow-y: auto; color: #333; }
+        .fechar { float: right; font-size: 28px; cursor: pointer; }
+        .tabela-rel { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 12px; }
+        .tabela-rel th { background: var(--primary); color: white; padding: 10px; text-align: left; }
+        .tabela-rel td { border-bottom: 1px solid #eee; padding: 10px; }
+        .controles-rel { display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; }
+        .controles-rel select, .controles-rel button { flex: 1; min-width: 120px; }
     </style>
 </head>
 <body>
@@ -61,6 +71,9 @@
             <input type="date" id="ini"><input type="date" id="fim">
             <select id="rel-moto" style="color:black"></select>
             <button style="background:var(--success)" onclick="relatorio()">📈 GERAR RELATÓRIO</button>
+           
+            <button style="background:#e67e22; margin-top:5px;" onclick="abrirModalRelatorio()">📋 HISTÓRICO GERAL / CANCELAR</button>
+
             <div id="res-rel" style="display:none; margin-top:10px; padding:10px; background:#444; border-radius:8px">
                 <p>Pix: <span id="val-pix" style="color:var(--success)">R$ 0.00</span> (<span id="qtd-pix">0</span>)</p>
                 <p>Dinheiro: <span id="val-din" style="color:var(--success)">R$ 0.00</span> (<span id="qtd-din">0</span>)</p>
@@ -86,13 +99,40 @@
     </div>
 </div>
 
+<div id="meuModalRel" class="modal-rel">
+  <div class="modal-content">
+    <span class="fechar" onclick="document.getElementById('meuModalRel').style.display='none'">&times;</span>
+    <h2 style="color:var(--primary)">📋 Relatório Detalhado</h2>
+    <div class="controles-rel">
+      <select id="filtro-moto-modal" onchange="renderizarTabelaRelatorio()">
+        <option value="TODOS">🌍 Todos os Motoboys</option>
+      </select>
+      <button onclick="gerarPDFRelatorio()" style="background:#d63031">📄 Gerar PDF</button>
+    </div>
+    <div class="table-responsive">
+      <table class="tabela-rel">
+        <thead>
+          <tr>
+            <th>Motoboy</th>
+            <th>Valor</th>
+            <th>Pagamento</th>
+            <th>Endereço</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody id="corpo-relatorio"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-    const URL_API = "https://script.google.com/macros/s/AKfycbw5XxNb1Xli8ixsQ9c23ktrhkof37QxZjZ2YZtnBJ-rPCDe0ZJXwV0QZ3k1sHn5D3p6Bg/exec";
+    const URL_API = "https://script.google.com/macros/s/AKfycby-mgqPNTcAwCXjd6v4drrQOtMInZF2xTCN6A52GGlxmeLyaSAbGiNC4RMmCZ8-6fK2_g/exec";
 
     var map = L.map('map').setView([-22.5734, -44.9701], 14);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
-    var markers = {}, listaMotosGlobal = [], dadosRel = {};
+    var markers = {}, listaMotosGlobal = [], dadosRel = {}, dadosGeraisCache = [];
 
     const urlParams = new URLSearchParams(window.location.search);
     const modoCliente = urlParams.get('cliente') === 'true';
@@ -227,13 +267,75 @@
     }
    
     function enviarWppCliente(moto, cliente) {
-        const link = window.location.href.split('?')[0] + `?cliente=true&moto=${encodeURIComponent(moto)}`;
-        const msg = `Olá ${cliente}, rastreie aqui seu pedido que vai ser entregue pelo ${moto} 🏍️ acompanhe pelo link: ${link}`;
-        window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`);
+    // Esse link já aponta para o seu novo repositório que vimos na foto
+    const linkRastreio = `https://gustavobueno301412-bit.github.io/rastreio-vale-express/index.html?moto=${encodeURIComponent(moto)}`;
+   
+    const msg = `Olá *${cliente}*! 🛵\n\nSeu pedido da *Vale Express* já saiu! 📦\n\nO motoboy *${moto}* está a caminho. Acompanhe em tempo real pelo link abaixo:\n\n👉 ${linkRastreio}`;
+   
+    window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`);
+}
+
+
+    // --- LOGICA DO MODAL DE RELATÓRIO GERAL ---
+
+    async function abrirModalRelatorio() {
+        document.getElementById('meuModalRel').style.display = 'block';
+        const opts = `<option value="TODOS">🌍 Todos os Motoboys</option>` +
+                     listaMotosGlobal.map(m => `<option value="${m.nome}">${m.nome}</option>`).join('');
+        document.getElementById('filtro-moto-modal').innerHTML = opts;
+       
+        try {
+            const res = await fetch(URL_API + "?action=getHistoricoCompleto");
+            dadosGeraisCache = await res.json();
+            renderizarTabelaRelatorio();
+        } catch(e) { alert("Erro ao carregar"); }
     }
+
+    function renderizarTabelaRelatorio() {
+        const filtro = document.getElementById('filtro-moto-modal').value;
+        const corpo = document.getElementById('corpo-relatorio');
+        corpo.innerHTML = "";
+        const filtrados = dadosGeraisCache.filter(d => filtro === "TODOS" || d.moto === filtro);
+       
+        filtrados.forEach(item => {
+            corpo.innerHTML += `
+                <tr>
+                    <td><b>${item.moto}</b></td>
+                    <td>R$ ${parseFloat(item.valor).toFixed(2)}</td>
+                    <td>${item.pg}</td>
+                    <td>${item.end}</td>
+                    <td><button class="btn-del" onclick="apagarDoRelatorio('${item.id}')">🗑️</button></td>
+                </tr>`;
+        });
+    }
+
+    async function apagarDoRelatorio(id) {
+        if(confirm("Deseja apagar esta corrida do histórico definitivamente?")) {
+            await fetch(URL_API, { method:'POST', body:JSON.stringify({acao:"deletar_historico", id: id}) });
+            alert("Removido!");
+            abrirModalRelatorio();
+        }
+    }
+
+    function gerarPDFRelatorio() {
+        const filtro = document.getElementById('filtro-moto-modal').value;
+        let tabelaHtml = document.querySelector('.tabela-rel').cloneNode(true);
+        tabelaHtml.querySelectorAll('.btn-del').forEach(b => b.remove()); // Remove lixeirinhas do PDF
+       
+        const win = window.open('', '', 'height=700,width=900');
+        win.document.write('<html><head><title>Relatório</title></head><body>');
+        win.document.write(`<h1>Relatório Vale Express - ${filtro}</h1>`);
+        win.document.write(tabelaHtml.outerHTML);
+        win.document.write('</body></html>');
+        win.document.close();
+        win.print();
+    }
+
     init();
 </script>
 </body>
 </html>
+
+ 
 
  
