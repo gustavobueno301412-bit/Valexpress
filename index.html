@@ -30,7 +30,6 @@
         .qtd-container label { font-size: 14px; font-weight: bold; color: var(--dark); }
         #qtd-ped { width: 80px; text-align: center; border: 2px solid var(--primary); }
 
-        /* ESTILOS DO NOVO MODAL */
         .modal-rel { display: none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); }
         .modal-content { background: white; margin: 5% auto; padding: 20px; width: 90%; max-width: 850px; border-radius: 15px; max-height: 85vh; overflow-y: auto; color: #333; }
         .fechar { float: right; font-size: 28px; cursor: pointer; }
@@ -108,6 +107,7 @@
         <option value="TODOS">🌍 Todos os Motoboys</option>
       </select>
       <button onclick="gerarPDFRelatorio()" style="background:#d63031">📄 Gerar PDF</button>
+      <button onclick="compartilharHistoricoGeral()" style="background:#25D366">🚀 Zap Histórico</button>
     </div>
     <div class="table-responsive">
       <table class="tabela-rel">
@@ -251,7 +251,7 @@
     }
 
     function compartilharRelatorio() {
-        const msg = `*VALE EXPRESS - FECHAMENTO*\n🛵 ${dadosRel.moto}\n📅 ${dadosRel.ini} a ${dadosRel.fim}\n\n📱 Pix: R$ ${dadosRel.pix.toFixed(2)}\n💵 Dinheiro: R$ ${dadosRel.din.toFixed(2)}\n💳 Cartão: R$ ${dadosRel.cart.toFixed(2)}\n\n💰 *TOTAL GERAL: R$ ${dadosRel.total.toFixed(2)}*`;
+        const msg = `*VALE EXPRESS - FECHAMENTO*\n\n🛵 ${dadosRel.moto}\n📅 ${dadosRel.ini} a ${dadosRel.fim}\n\n📱 Pix: R$ ${dadosRel.pix.toFixed(2)}\n💵 Dinheiro: R$ ${dadosRel.din.toFixed(2)}\n💳 Cartão: R$ ${dadosRel.cart.toFixed(2)}\n\n💰 *TOTAL GERAL: R$ ${dadosRel.total.toFixed(2)}*`;
         window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`);
     }
 
@@ -267,16 +267,10 @@
     }
    
     function enviarWppCliente(moto, cliente) {
-    // Esse link já aponta para o seu novo repositório que vimos na foto
-    const linkRastreio = `https://gustavobueno301412-bit.github.io/rastreio-vale-express/index.html?moto=${encodeURIComponent(moto)}`;
-   
-    const msg = `Olá *${cliente}*! 🛵\n\nSeu pedido da *Vale Express* já saiu! 📦\n\nO motoboy *${moto}* está a caminho. Acompanhe em tempo real pelo link abaixo:\n\n👉 ${linkRastreio}`;
-   
-    window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`);
-}
-
-
-    // --- LOGICA DO MODAL DE RELATÓRIO GERAL ---
+        const linkRastreio = `https://gustavobueno301412-bit.github.io/rastreio-vale-express/index.html?moto=${encodeURIComponent(moto)}`;
+        const msg = `Olá *${cliente}*! 🛵\n\nSeu pedido da *Vale Express* já saiu! 📦\n\nO motoboy *${moto}* está a caminho. Acompanhe em tempo real pelo link abaixo:\n\n👉 ${linkRastreio}`;
+        window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`);
+    }
 
     async function abrirModalRelatorio() {
         document.getElementById('meuModalRel').style.display = 'block';
@@ -309,6 +303,16 @@
         });
     }
 
+    function compartilharHistoricoGeral() {
+        const filtro = document.getElementById('filtro-moto-modal').value;
+        const filtrados = dadosGeraisCache.filter(d => filtro === "TODOS" || d.moto === filtro);
+        let texto = `*VALE EXPRESS - HISTÓRICO GERAL*\n*Motoboy:* ${filtro}\n\n`;
+        filtrados.forEach(item => {
+            texto += `📦 Valor: R$ ${parseFloat(item.valor).toFixed(2)} | PG: ${item.pg}\n📍 Local: ${item.end}\n----------\n`;
+        });
+        window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(texto)}`);
+    }
+
     async function apagarDoRelatorio(id) {
         if(confirm("Deseja apagar esta corrida do histórico definitivamente?")) {
             await fetch(URL_API, { method:'POST', body:JSON.stringify({acao:"deletar_historico", id: id}) });
@@ -320,8 +324,7 @@
     function gerarPDFRelatorio() {
         const filtro = document.getElementById('filtro-moto-modal').value;
         let tabelaHtml = document.querySelector('.tabela-rel').cloneNode(true);
-        tabelaHtml.querySelectorAll('.btn-del').forEach(b => b.remove()); // Remove lixeirinhas do PDF
-       
+        tabelaHtml.querySelectorAll('.btn-del').forEach(b => b.remove());
         const win = window.open('', '', 'height=700,width=900');
         win.document.write('<html><head><title>Relatório</title></head><body>');
         win.document.write(`<h1>Relatório Vale Express - ${filtro}</h1>`);
@@ -335,7 +338,5 @@
 </script>
 </body>
 </html>
-
- 
 
  

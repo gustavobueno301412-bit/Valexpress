@@ -74,8 +74,9 @@
                     <h3 style="margin:5px 0; color:#0984e3;">📦 ${p.produto}</h3>
                     <p>📍 <b>Retirada:</b> ${p.ret}<br>🏁 <b>Entrega:</b> ${p.ent}</p>
                     <p style="background:#333; padding:5px; border-radius:5px;">Status: <b>${p.status.toUpperCase()}</b></p>
-                    <button class="btn btn-status" onclick="mudarStatus(${p.id}, '🛵 A Caminho')">🛵 A Caminho</button>
-                    <button class="btn btn-status" style="background:#9b59b6" onclick="mudarStatus(${p.id}, '📦 Pedido Coletado')">📦 Pedido Coletado</button>
+                    <button class="btn btn-status" onclick="mudarStatus(${p.id}, 'saindo')">🛵 Iniciar Saída</button>
+                    <button class="btn btn-status" style="background:#9b59b6" onclick="mudarStatus(${p.id}, 'coletado')">📦 Coletar Pedido</button>
+                    <button class="btn btn-status" style="background:#3498db" onclick="mudarStatus(${p.id}, 'no local')">📍 Cheguei no Local</button>
                     <button class="btn btn-check" onclick="mudarStatus(${p.id}, 'finalizado')">✅ Pedido Entregue</button>
                 </div>
             `;
