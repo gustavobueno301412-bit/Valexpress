@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
@@ -38,7 +39,6 @@
         .tabela-rel td { border-bottom: 1px solid #eee; padding: 10px; }
         .controles-rel { display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; }
         .controles-rel select, .controles-rel button { flex: 1; min-width: 120px; }
-        .recorrente-box { background: #fff3cd; padding: 10px; border-radius: 8px; margin: 5px 0; border: 1px solid #ffeeba; display: none; }
     </style>
 </head>
 <body>
@@ -46,18 +46,9 @@
     <div class="sidebar">
         <div class="card">
             <h2>🛵 VALE EXPRESS - 📦 Nova corrida</h2>
-           
-            <input type="text" id="cli" placeholder="Cliente" list="lista-locais" oninput="verificarCliente()">
-            <datalist id="lista-locais"></datalist>
-
+            <input type="text" id="cli" placeholder="Cliente">
             <input type="text" id="prod" placeholder="Produto">
-            <input type="text" id="ret" placeholder="Retirada (Coleta)">
-           
-            <div id="box-salvar" class="recorrente-box">
-                <input type="checkbox" id="salvar-local" style="width: 20px; vertical-align: middle;">
-                <label for="salvar-local" style="font-size: 12px; color: #856404;">Salvar como cliente recorrente?</label>
-            </div>
-
+            <input type="text" id="ret" placeholder="Retirada">
             <input type="text" id="ent" placeholder="Entrega">
             <select id="sel-cidade" onchange="document.getElementById('taxa-val').value=this.value"></select>
             <select id="sel-moto"></select>
@@ -138,12 +129,11 @@
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-    // LEMBRETE: Atualize a URL abaixo com o link da sua Nova Implantação do Script (.gs)
-    const URL_API = "https://script.google.com/macros/s/AKfycbz4zehnvTYyiB6pgrz3C9lEU5fXxe-jrSRnbONTKdBh37BTLwPg807Axx1kLoGWkyCioQ/exec";
+    const URL_API = "https://script.google.com/macros/s/AKfycbyLDvM23NgdRtCzIjQLvTB9Gz87X7wexS4V41gxodSNKi0lbJ4UHH01tV9Dp7p2vIPncQ/exec";
 
     var map = L.map('map').setView([-22.5734, -44.9701], 14);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
-    var markers = {}, listaMotosGlobal = [], dadosRel = {}, dadosGeraisCache = [], listaLocaisRecorrentes = [];
+    var markers = {}, listaMotosGlobal = [], dadosRel = {}, dadosGeraisCache = [];
 
     const urlParams = new URLSearchParams(window.location.search);
     const modoCliente = urlParams.get('cliente') === 'true';
@@ -158,53 +148,10 @@
             document.getElementById('rel-moto').innerHTML = opts;
             document.getElementById('sel-cidade').innerHTML = res.cidades.map(c => `<option value="${c.taxa}">${c.nome}</option>`).join('');
             document.getElementById('taxa-val').value = document.getElementById('sel-cidade').value;
-           
-            buscarDadosLocais();
-            carregarPedidos();
-            monitorarGps();
+            carregarPedidos(); monitorarGps();
             setTimeout(() => map.invalidateSize(), 800);
         } catch(e) { console.error(e); }
     }
-
-    async function buscarDadosLocais() {
-        try {
-            const res = await (await fetch(URL_API + "?action=getLocais")).json();
-            listaLocaisRecorrentes = res;
-            const datalist = document.getElementById('lista-locais');
-            datalist.innerHTML = res.map(l => `<option value="${l.nome}">`).join('');
-        } catch(e) { console.log("Erro ao carregar locais"); }
-    }
-
-    function verificarCliente() {
-    const inputCli = document.getElementById('cli');
-    const nomeDigitado = inputCli.value;
-    const boxSalvar = document.getElementById('box-salvar');
-    const campoRetirada = document.getElementById('ret');
-
-    // Tenta encontrar o cliente na lista que veio da planilha
-    const localEncontrado = listaLocaisRecorrentes.find(l =>
-        l.nome.trim().toLowerCase() === nomeDigitado.trim().toLowerCase()
-    );
-
-    if (localEncontrado) {
-        // 1. Achou! Preenche o endereço automaticamente
-        campoRetirada.value = localEncontrado.endereco;
-        // 2. Esconde a caixa de salvar (pois já existe)
-        boxSalvar.style.display = 'none';
-        // 3. Desmarca o checkbox por segurança
-        document.getElementById('salvar-local').checked = false;
-    } else {
-        // Se não achou e tem texto, mostra opção de salvar novo
-        if(nomeDigitado.length > 2) {
-            boxSalvar.style.display = 'block';
-        } else {
-            boxSalvar.style.display = 'none';
-        }
-    }
-}
-
- 
-
 
     async function carregarPedidos() {
         if(modoCliente) return;
@@ -229,7 +176,9 @@
 
             locs.forEach(m => {
                 if (modoCliente && motoFiltrada && m.nome !== motoFiltrada) return;
+               
                 const popup = `<div class="popup-moto"><img src="${m.bike}"><b>${m.nome}</b><br>${m.detalhes}</div>`;
+               
                 if (markers[m.nome]) {
                     markers[m.nome].setLatLng([m.lat, m.lng]).getPopup().setContent(popup);
                 } else {
@@ -238,6 +187,10 @@
                         className: '', iconSize:[40,40], iconAnchor:[20,40], popupAnchor:[0,-40]
                     });
                     markers[m.nome] = L.marker([m.lat, m.lng], {icon}).addTo(map).bindPopup(popup);
+                }
+
+                if (modoCliente && motoFiltrada && m.nome === motoFiltrada) {
+                    map.panTo([m.lat, m.lng]);
                 }
             });
         } catch(e){}
@@ -250,7 +203,6 @@
         const taxaBase = parseFloat(document.getElementById('taxa-val').value) || 0;
         const qtd = parseInt(document.getElementById('qtd-ped').value) || 1;
         const taxaCalculada = taxaBase * qtd;
-        const salvarNovo = document.getElementById('salvar-local').checked;
 
         const d = {
             acao:"novo_pedido",
@@ -260,21 +212,12 @@
             entrega: document.getElementById('ent').value,
             motoboy: document.getElementById('sel-moto').value,
             taxa: taxaCalculada,
-            pg: document.getElementById('sel-pg').value,
-            salvarRecorrente: salvarNovo,
-            nomeOriginal: cli
+            pg: document.getElementById('sel-pg').value
         };
 
         if(confirm("Confirmar lançamento de R$ " + taxaCalculada.toFixed(2) + "?")) {
             await fetch(URL_API, { method:'POST', body:JSON.stringify(d) });
             alert("Lançado!");
-            document.getElementById('cli').value = "";
-            document.getElementById('ret').value = "";
-            document.getElementById('ent').value = "";
-            document.getElementById('prod').value = "";
-            document.getElementById('salvar-local').checked = false;
-            document.getElementById('box-salvar').style.display = 'none';
-            buscarDadosLocais();
             carregarPedidos();
             document.getElementById('qtd-ped').value = 1;
         }
@@ -284,35 +227,32 @@
         const m = document.getElementById('rel-moto').value;
         const i = document.getElementById('ini').value;
         const f = document.getElementById('fim').value;
-        if(!i || !f) return alert("Escolha as Datas!");
+        if(!i || !f) return alert("Datas!");
         document.getElementById('res-rel').style.display='block';
         try {
-            const response = await fetch(`${URL_API}?action=getRelatorio&moto=${encodeURIComponent(m)}&inicio=${i}&fim=${f}`);
-            const res = await response.json();
-           
-            // Valores (Dinheiro em Verde)
-            document.getElementById('val-pix').innerText = "R$ " + (res.totalPix || 0).toFixed(2);
-            document.getElementById('val-din').innerText = "R$ " + (res.totalDinheiro || 0).toFixed(2);
-            document.getElementById('val-cart').innerText = "R$ " + (res.totalCartao || 0).toFixed(2);
-            document.getElementById('val-moto').innerText = "R$ " + (res.totalGeral || 0).toFixed(2);
-           
-            // Quantidades (Parênteses)
-            document.getElementById('qtd-pix').innerText = res.qtdPix || 0;
-            document.getElementById('qtd-din').innerText = res.qtdDinheiro || 0;
-            document.getElementById('qtd-cart').innerText = res.qtdCartao || 0;
-            document.getElementById('val-qtd').innerText = res.qtdTotal || 0;
-
-            dadosRel = {
-                moto: m, total: res.totalGeral, qtd: res.qtdTotal,
-                ini: i, fim: f, pix: res.totalPix, qPix: res.qtdPix,
-                din: res.totalDinheiro, qDin: res.qtdDinheiro,
-                cart: res.totalCartao, qCart: res.qtdCartao
-            };
-        } catch(e){ console.error(e); }
+            const res = await (await fetch(`${URL_API}?action=getRelatorio&moto=${encodeURIComponent(m)}&inicio=${i}&fim=${f}`)).json();
+            let tPix=0, qPix=0, tDin=0, qDin=0, tCar=0, qCar=0;
+            res.viagens.forEach(v => {
+                let val = parseFloat(v.valor) || 0;
+                let pg = String(v.pagamento || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+                if(pg === "pix") { tPix += val; qPix++; }
+                else if(pg === "dinheiro") { tDin += val; qDin++; }
+                else if(pg === "cartao") { tCar += val; qCar++; }
+            });
+            dadosRel = { moto:m, total:(tPix+tDin+tCar), qtd:(qPix+qDin+qCar), ini:i, fim:f, pix:tPix, qPix:qPix, din:tDin, qDin:qDin, cart:tCar, qCar:qCar };
+            document.getElementById('val-pix').innerText = "R$ " + tPix.toFixed(2);
+            document.getElementById('qtd-pix').innerText = qPix;
+            document.getElementById('val-din').innerText = "R$ " + tDin.toFixed(2);
+            document.getElementById('qtd-din').innerText = qDin;
+            document.getElementById('val-cart').innerText = "R$ " + tCar.toFixed(2);
+            document.getElementById('qtd-cart').innerText = qCar;
+            document.getElementById('val-moto').innerText = "R$ " + dadosRel.total.toFixed(2);
+            document.getElementById('val-qtd').innerText = dadosRel.qtd;
+        } catch(e){}
     }
 
     function compartilharRelatorio() {
-        const msg = `*VALE EXPRESS - FECHAMENTO*\n\n🛵 ${dadosRel.moto}\n📅 ${dadosRel.ini} a ${dadosRel.fim}\n\n📱 Pix: R$ ${dadosRel.pix.toFixed(2)} (${dadosRel.qPix})\n💵 Dinheiro: R$ ${dadosRel.din.toFixed(2)} (${dadosRel.qDin})\n💳 Cartão: R$ ${dadosRel.cart.toFixed(2)} (${dadosRel.qCart})\n\n💰 *TOTAL GERAL: R$ ${dadosRel.total.toFixed(2)}*`;
+        const msg = `*VALE EXPRESS - FECHAMENTO*\n\n🛵 ${dadosRel.moto}\n📅 ${dadosRel.ini} a ${dadosRel.fim}\n\n📱 Pix: R$ ${dadosRel.pix.toFixed(2)}\n💵 Dinheiro: R$ ${dadosRel.din.toFixed(2)}\n💳 Cartão: R$ ${dadosRel.cart.toFixed(2)}\n\n💰 *TOTAL GERAL: R$ ${dadosRel.total.toFixed(2)}*`;
         window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`);
     }
 
@@ -326,7 +266,7 @@
         window.open(`https://api.whatsapp.com/send?phone=55${zap}&text=${encodeURIComponent(mensagem)}`);
         setTimeout(carregarPedidos, 1500);
     }
-  
+   
     function enviarWppCliente(moto, cliente) {
         const linkRastreio = `https://gustavobueno301412-bit.github.io/rastreio-vale-express/index.html?moto=${encodeURIComponent(moto)}`;
         const msg = `Olá *${cliente}*! 🛵\n\nSeu pedido da *Vale Express* já saiu! 📦\n\nO motoboy *${moto}* está a caminho. Acompanhe em tempo real pelo link abaixo:\n\n👉 ${linkRastreio}`;
@@ -335,8 +275,10 @@
 
     async function abrirModalRelatorio() {
         document.getElementById('meuModalRel').style.display = 'block';
-        const opts = `<option value="TODOS">🌍 Todos os Motoboys</option>` + listaMotosGlobal.map(m => `<option value="${m.nome}">${m.nome}</option>`).join('');
+        const opts = `<option value="TODOS">🌍 Todos os Motoboys</option>` +
+                     listaMotosGlobal.map(m => `<option value="${m.nome}">${m.nome}</option>`).join('');
         document.getElementById('filtro-moto-modal').innerHTML = opts;
+       
         try {
             const res = await fetch(URL_API + "?action=getHistoricoCompleto");
             dadosGeraisCache = await res.json();
@@ -349,14 +291,33 @@
         const corpo = document.getElementById('corpo-relatorio');
         corpo.innerHTML = "";
         const filtrados = dadosGeraisCache.filter(d => filtro === "TODOS" || d.moto === filtro);
+       
         filtrados.forEach(item => {
-            corpo.innerHTML += `<tr><td><b>${item.moto}</b></td><td>R$ ${parseFloat(item.valor).toFixed(2)}</td><td>${item.pg}</td><td>${item.end}</td><td><button class="btn-del" onclick="apagarDoRelatorio('${item.id}')">🗑️</button></td></tr>`;
+            corpo.innerHTML += `
+                <tr>
+                    <td><b>${item.moto}</b></td>
+                    <td>R$ ${parseFloat(item.valor).toFixed(2)}</td>
+                    <td>${item.pg}</td>
+                    <td>${item.end}</td>
+                    <td><button class="btn-del" onclick="apagarDoRelatorio('${item.id}')">🗑️</button></td>
+                </tr>`;
         });
     }
 
+    function compartilharHistoricoGeral() {
+        const filtro = document.getElementById('filtro-moto-modal').value;
+        const filtrados = dadosGeraisCache.filter(d => filtro === "TODOS" || d.moto === filtro);
+        let texto = `*VALE EXPRESS - HISTÓRICO GERAL*\n*Motoboy:* ${filtro}\n\n`;
+        filtrados.forEach(item => {
+            texto += `📦 Valor: R$ ${parseFloat(item.valor).toFixed(2)} | PG: ${item.pg}\n📍 Local: ${item.end}\n----------\n`;
+        });
+        window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(texto)}`);
+    }
+
     async function apagarDoRelatorio(id) {
-        if(confirm("Deseja apagar definitivamente?")) {
+        if(confirm("Deseja apagar esta corrida do histórico definitivamente?")) {
             await fetch(URL_API, { method:'POST', body:JSON.stringify({acao:"deletar_historico", id: id}) });
+            alert("Removido!");
             abrirModalRelatorio();
         }
     }
@@ -366,7 +327,10 @@
         let tabelaHtml = document.querySelector('.tabela-rel').cloneNode(true);
         tabelaHtml.querySelectorAll('.btn-del').forEach(b => b.remove());
         const win = window.open('', '', 'height=700,width=900');
-        win.document.write('<html><head><title>Relatório</title></head><body><h1>Relatório Vale Express - '+filtro+'</h1>'+tabelaHtml.outerHTML+'</body></html>');
+        win.document.write('<html><head><title>Relatório</title></head><body>');
+        win.document.write(`<h1>Relatório Vale Express - ${filtro}</h1>`);
+        win.document.write(tabelaHtml.outerHTML);
+        win.document.write('</body></html>');
         win.document.close();
         win.print();
     }
@@ -375,5 +339,3 @@
 </script>
 </body>
 </html>
-
- 
