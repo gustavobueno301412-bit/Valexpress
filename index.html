@@ -176,22 +176,35 @@
     }
 
     function verificarCliente() {
-        const nomeDigitado = document.getElementById('cli').value;
-        const localEncontrado = listaLocaisRecorrentes.find(l => l.nome.toLowerCase() === nomeDigitado.toLowerCase());
-        const boxSalvar = document.getElementById('box-salvar');
-        const campoRetirada = document.getElementById('ret');
+    const inputCli = document.getElementById('cli');
+    const nomeDigitado = inputCli.value;
+    const boxSalvar = document.getElementById('box-salvar');
+    const campoRetirada = document.getElementById('ret');
 
-        if (localEncontrado) {
-            campoRetirada.value = localEncontrado.endereco;
-            boxSalvar.style.display = 'none';
+    // Tenta encontrar o cliente na lista que veio da planilha
+    const localEncontrado = listaLocaisRecorrentes.find(l =>
+        l.nome.trim().toLowerCase() === nomeDigitado.trim().toLowerCase()
+    );
+
+    if (localEncontrado) {
+        // 1. Achou! Preenche o endereço automaticamente
+        campoRetirada.value = localEncontrado.endereco;
+        // 2. Esconde a caixa de salvar (pois já existe)
+        boxSalvar.style.display = 'none';
+        // 3. Desmarca o checkbox por segurança
+        document.getElementById('salvar-local').checked = false;
+    } else {
+        // Se não achou e tem texto, mostra opção de salvar novo
+        if(nomeDigitado.length > 2) {
+            boxSalvar.style.display = 'block';
         } else {
-            if(nomeDigitado.length > 2) {
-                boxSalvar.style.display = 'block';
-            } else {
-                boxSalvar.style.display = 'none';
-            }
+            boxSalvar.style.display = 'none';
         }
     }
+}
+
+ 
+
 
     async function carregarPedidos() {
         if(modoCliente) return;
