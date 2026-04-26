@@ -38,6 +38,9 @@
         .tabela-rel td { border-bottom: 1px solid #eee; padding: 10px; }
         .controles-rel { display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; }
         .controles-rel select, .controles-rel button { flex: 1; min-width: 120px; }
+
+        /* Estilo para a sugestão de locais */
+        .recorrente-box { background: #fff3cd; padding: 10px; border-radius: 8px; margin: 5px 0; border: 1px solid #ffeeba; display: none; }
     </style>
 </head>
 <body>
@@ -45,9 +48,18 @@
     <div class="sidebar">
         <div class="card">
             <h2>🛵 VALE EXPRESS - 📦 Nova corrida</h2>
-            <input type="text" id="cli" placeholder="Cliente">
+           
+            <input type="text" id="cli" placeholder="Cliente" list="lista-locais" oninput="verificarCliente()">
+            <datalist id="lista-locais"></datalist>
+
             <input type="text" id="prod" placeholder="Produto">
-            <input type="text" id="ret" placeholder="Retirada">
+            <input type="text" id="ret" placeholder="Retirada (Coleta)">
+           
+            <div id="box-salvar" class="recorrente-box">
+                <input type="checkbox" id="salvar-local" style="width: 20px; vertical-align: middle;">
+                <label for="salvar-local" style="font-size: 12px; color: #856404;">Salvar como cliente recorrente?</label>
+            </div>
+
             <input type="text" id="ent" placeholder="Entrega">
             <select id="sel-cidade" onchange="document.getElementById('taxa-val').value=this.value"></select>
             <select id="sel-moto"></select>
@@ -128,11 +140,11 @@
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-    const URL_API = "https://script.google.com/macros/s/AKfycby-mgqPNTcAwCXjd6v4drrQOtMInZF2xTCN6A52GGlxmeLyaSAbGiNC4RMmCZ8-6fK2_g/exec";
+    const URL_API = "https://script.google.com/macros/s/AKfycbya5wuoY0319rhUW_ouVIJD7khXFQaLL4u4J4nebUzgzbJLDL0YZodhF8exS4HpBSdv7Q/exec";
 
     var map = L.map('map').setView([-22.5734, -44.9701], 14);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
-    var markers = {}, listaMotosGlobal = [], dadosRel = {}, dadosGeraisCache = [];
+    var markers = {}, listaMotosGlobal = [], dadosRel = {}, dadosGeraisCache = [], listaLocaisRecorrentes = [];
 
     const urlParams = new URLSearchParams(window.location.search);
     const modoCliente = urlParams.get('cliente') === 'true';
@@ -147,9 +159,41 @@
             document.getElementById('rel-moto').innerHTML = opts;
             document.getElementById('sel-cidade').innerHTML = res.cidades.map(c => `<option value="${c.taxa}">${c.nome}</option>`).join('');
             document.getElementById('taxa-val').value = document.getElementById('sel-cidade').value;
-            carregarPedidos(); monitorarGps();
+           
+            buscarDadosLocais(); // Busca os clientes da aba LOCAL
+            carregarPedidos();
+            monitorarGps();
             setTimeout(() => map.invalidateSize(), 800);
         } catch(e) { console.error(e); }
+    }
+
+    // --- NOVA FUNÇÃO: Busca locais da planilha ---
+    async function buscarDadosLocais() {
+        try {
+            const res = await (await fetch(URL_API + "?action=getLocais")).json();
+            listaLocaisRecorrentes = res;
+            const datalist = document.getElementById('lista-locais');
+            datalist.innerHTML = res.map(l => `<option value="${l.nome}">`).join('');
+        } catch(e) { console.log("Erro ao carregar locais"); }
+    }
+
+    // --- NOVA FUNÇÃO: Verifica se cliente já existe e preenche endereço ---
+    function verificarCliente() {
+        const nomeDigitado = document.getElementById('cli').value;
+        const localEncontrado = listaLocaisRecorrentes.find(l => l.nome.toLowerCase() === nomeDigitado.toLowerCase());
+        const boxSalvar = document.getElementById('box-salvar');
+        const campoRetirada = document.getElementById('ret');
+
+        if (localEncontrado) {
+            campoRetirada.value = localEncontrado.endereco;
+            boxSalvar.style.display = 'none'; // Cliente já existe, esconde opção de salvar
+        } else {
+            if(nomeDigitado.length > 2) {
+                boxSalvar.style.display = 'block'; // Cliente novo, mostra opção de salvar
+            } else {
+                boxSalvar.style.display = 'none';
+            }
+        }
     }
 
     async function carregarPedidos() {
@@ -202,6 +246,7 @@
         const taxaBase = parseFloat(document.getElementById('taxa-val').value) || 0;
         const qtd = parseInt(document.getElementById('qtd-ped').value) || 1;
         const taxaCalculada = taxaBase * qtd;
+        const salvarNovo = document.getElementById('salvar-local').checked; // Verifica se quer salvar local
 
         const d = {
             acao:"novo_pedido",
@@ -211,12 +256,21 @@
             entrega: document.getElementById('ent').value,
             motoboy: document.getElementById('sel-moto').value,
             taxa: taxaCalculada,
-            pg: document.getElementById('sel-pg').value
+            pg: document.getElementById('sel-pg').value,
+            salvarRecorrente: salvarNovo, // Envia para o servidor se deve salvar
+            nomeOriginal: cli // Envia o nome limpo para salvar na aba LOCAL
         };
 
         if(confirm("Confirmar lançamento de R$ " + taxaCalculada.toFixed(2) + "?")) {
             await fetch(URL_API, { method:'POST', body:JSON.stringify(d) });
             alert("Lançado!");
+            document.getElementById('cli').value = "";
+            document.getElementById('ret').value = "";
+            document.getElementById('ent').value = "";
+            document.getElementById('prod').value = "";
+            document.getElementById('salvar-local').checked = false;
+            document.getElementById('box-salvar').style.display = 'none';
+            buscarDadosLocais(); // Atualiza a lista de sugestões
             carregarPedidos();
             document.getElementById('qtd-ped').value = 1;
         }
