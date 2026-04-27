@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
@@ -47,6 +46,13 @@
         <div class="card">
             <h2>🛵 VALE EXPRESS - 📦 Nova corrida</h2>
             <input type="text" id="cli" placeholder="Cliente">
+           
+            <div id="recorrente-box" style="display:none; background:#e1f5fe; padding:8px; border-radius:8px; margin-bottom:5px;">
+                <label style="font-size:12px; color:#01579b; font-weight:bold;">
+                    <input type="checkbox" id="salvar-recorrente" style="width:auto;"> Salvar este cliente como recorrente?
+                </label>
+            </div>
+
             <input type="text" id="prod" placeholder="Produto">
             <input type="text" id="ret" placeholder="Retirada">
             <input type="text" id="ent" placeholder="Entrega">
@@ -129,7 +135,7 @@
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-    const URL_API = "https://script.google.com/macros/s/AKfycbyLDvM23NgdRtCzIjQLvTB9Gz87X7wexS4V41gxodSNKi0lbJ4UHH01tV9Dp7p2vIPncQ/exec";
+    const URL_API = "https://script.google.com/macros/s/AKfycbzr1Ni5KVCfn7GqZvcmbeJ1PoYb4SF_JY5bZo8K3e0_mFDEsOaDnRtdBGGHo5KyJq5sJA/exec";
 
     var map = L.map('map').setView([-22.5734, -44.9701], 14);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
@@ -152,6 +158,21 @@
             setTimeout(() => map.invalidateSize(), 800);
         } catch(e) { console.error(e); }
     }
+
+    // NOVO: Função para buscar endereço de coleta automaticamente
+    document.getElementById('cli').addEventListener('blur', function() {
+        const nome = this.value;
+        if(nome.length > 2) {
+            google.script.run.withSuccessHandler(function(endereco) {
+                if(endereco) {
+                    document.getElementById('ret').value = endereco;
+                    document.getElementById('recorrente-box').style.display = 'none';
+                } else {
+                    document.getElementById('recorrente-box').style.display = 'block';
+                }
+            }).buscarClienteRecorrente(nome);
+        }
+    });
 
     async function carregarPedidos() {
         if(modoCliente) return;
@@ -200,26 +221,36 @@
     async function lancar() {
         const cli = document.getElementById('cli').value;
         const prod = document.getElementById('prod').value;
+        const ret = document.getElementById('ret').value;
+        const ent = document.getElementById('ent').value;
         const taxaBase = parseFloat(document.getElementById('taxa-val').value) || 0;
         const qtd = parseInt(document.getElementById('qtd-ped').value) || 1;
         const taxaCalculada = taxaBase * qtd;
+        const isRecorrente = document.getElementById('salvar-recorrente').checked;
 
         const d = {
             acao:"novo_pedido",
             cliente: cli + (qtd > 1 ? " [" + qtd + " Entregas]" : ""),
             produto: prod,
-            retirada: document.getElementById('ret').value,
-            entrega: document.getElementById('ent').value,
+            retirada: ret,
+            entrega: ent,
             motoboy: document.getElementById('sel-moto').value,
             taxa: taxaCalculada,
             pg: document.getElementById('sel-pg').value
         };
 
         if(confirm("Confirmar lançamento de R$ " + taxaCalculada.toFixed(2) + "?")) {
+            // NOVO: Salva na aba LOCAL se marcado
+            if(isRecorrente) {
+                google.script.run.salvarNovoLocal(cli, ret);
+            }
+
             await fetch(URL_API, { method:'POST', body:JSON.stringify(d) });
             alert("Lançado!");
             carregarPedidos();
             document.getElementById('qtd-ped').value = 1;
+            document.getElementById('salvar-recorrente').checked = false;
+            document.getElementById('recorrente-box').style.display = 'none';
         }
     }
 
@@ -239,7 +270,7 @@
                 else if(pg === "dinheiro") { tDin += val; qDin++; }
                 else if(pg === "cartao") { tCar += val; qCar++; }
             });
-            dadosRel = { moto:m, total:(tPix+tDin+tCar), qtd:(qPix+qDin+qCar), ini:i, fim:f, pix:tPix, qPix:qPix, din:tDin, qDin:qDin, cart:tCar, qCar:qCar };
+            dadosRel = { moto:m, total:(tPix+tDin+tCar), qtd:(qPix+qDin+qCar), ini:i, fimm:f, pix:tPix, qPix:qPix, din:tDin, qDin:qDin, cart:tCar, qCar:qCar };
             document.getElementById('val-pix').innerText = "R$ " + tPix.toFixed(2);
             document.getElementById('qtd-pix').innerText = qPix;
             document.getElementById('val-din').innerText = "R$ " + tDin.toFixed(2);
@@ -339,3 +370,5 @@
 </script>
 </body>
 </html>
+
+ 
