@@ -29,9 +29,8 @@
         .qtd-container { display: flex; align-items: center; gap: 10px; background: #eef2f7; padding: 5px 10px; border-radius: 8px; margin: 5px 0; }
         .qtd-container label { font-size: 14px; font-weight: bold; color: var(--dark); }
         #qtd-ped { width: 80px; text-align: center; border: 2px solid var(--primary); }
-
         .modal-rel { display: none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); }
-        .modal-content { background: white; margin: 5% auto; padding: 20px; width: 90%; max-width: 850px; border-radius: 15px; max-height: 85vh; overflow-y: auto; color: #333; }
+        .modal-content { background: white; margin: 5% auto; padding: 20px; width: 95%; max-width: 900px; border-radius: 15px; max-height: 85vh; overflow-y: auto; color: #333; }
         .fechar { float: right; font-size: 28px; cursor: pointer; }
         .tabela-rel { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 12px; }
         .tabela-rel th { background: var(--primary); color: white; padding: 10px; text-align: left; }
@@ -45,7 +44,8 @@
     <div class="sidebar">
         <div class="card">
             <h2>🛵 VALE EXPRESS - 📦 Nova corrida</h2>
-            <input type="text" id="cli" placeholder="Cliente">
+            <input type="text" id="cli" placeholder="Cliente" list="lista-clientes" autocomplete="off">
+            <datalist id="lista-clientes"></datalist>
            
             <div id="recorrente-box" style="display:none; background:#e1f5fe; padding:8px; border-radius:8px; margin-bottom:5px;">
                 <label style="font-size:12px; color:#01579b; font-weight:bold;">
@@ -77,7 +77,6 @@
             <input type="date" id="ini"><input type="date" id="fim">
             <select id="rel-moto" style="color:black"></select>
             <button style="background:var(--success)" onclick="relatorio()">📈 GERAR RELATÓRIO</button>
-           
             <button style="background:#e67e22; margin-top:5px;" onclick="abrirModalRelatorio()">📋 HISTÓRICO GERAL / CANCELAR</button>
 
             <div id="res-rel" style="display:none; margin-top:10px; padding:10px; background:#444; border-radius:8px">
@@ -110,23 +109,13 @@
     <span class="fechar" onclick="document.getElementById('meuModalRel').style.display='none'">&times;</span>
     <h2 style="color:var(--primary)">📋 Relatório Detalhado</h2>
     <div class="controles-rel">
-      <select id="filtro-moto-modal" onchange="renderizarTabelaRelatorio()">
-        <option value="TODOS">🌍 Todos os Motoboys</option>
-      </select>
+      <select id="filtro-moto-modal" onchange="renderizarTabelaRelatorio()" style="color:black"></select>
       <button onclick="gerarPDFRelatorio()" style="background:#d63031">📄 Gerar PDF</button>
       <button onclick="compartilharHistoricoGeral()" style="background:#25D366">🚀 Zap Histórico</button>
     </div>
     <div class="table-responsive">
       <table class="tabela-rel">
-        <thead>
-          <tr>
-            <th>Motoboy</th>
-            <th>Valor</th>
-            <th>Pagamento</th>
-            <th>Endereço</th>
-            <th>Ações</th>
-          </tr>
-        </thead>
+        <thead><tr><th>Motoboy</th><th>Valor</th><th>Pagamento</th><th>Endereço</th><th>Ações</th></tr></thead>
         <tbody id="corpo-relatorio"></tbody>
       </table>
     </div>
@@ -135,11 +124,11 @@
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-    const URL_API = "https://script.google.com/macros/s/AKfycbzr1Ni5KVCfn7GqZvcmbeJ1PoYb4SF_JY5bZo8K3e0_mFDEsOaDnRtdBGGHo5KyJq5sJA/exec";
+    const URL_API = "https://script.google.com/macros/s/AKfycbxVDLH2KGMgtpDlqaVHjx6Bp3hoyakC9aWQBx8eYnw4MIqDS6t5CFHX_4EOW8JRcTM7iw/exec";
 
     var map = L.map('map').setView([-22.5734, -44.9701], 14);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
-    var markers = {}, listaMotosGlobal = [], dadosRel = {}, dadosGeraisCache = [];
+    var markers = {}, listaMotosGlobal = [], dadosRel = {}, dadosGeraisCache = [], clientesRecorrentesCache = [];
 
     const urlParams = new URLSearchParams(window.location.search);
     const modoCliente = urlParams.get('cliente') === 'true';
@@ -149,6 +138,7 @@
         try {
             const res = await (await fetch(URL_API + "?action=getConfig")).json();
             listaMotosGlobal = res.motoboys;
+            carregarClientesRecorrentes();
             const opts = res.motoboys.map(m => `<option value="${m.nome}">${m.nome}</option>`).join('');
             document.getElementById('sel-moto').innerHTML = opts;
             document.getElementById('rel-moto').innerHTML = opts;
@@ -159,18 +149,27 @@
         } catch(e) { console.error(e); }
     }
 
-    // NOVO: Função para buscar endereço de coleta automaticamente
-    document.getElementById('cli').addEventListener('blur', function() {
-        const nome = this.value;
-        if(nome.length > 2) {
-            google.script.run.withSuccessHandler(function(endereco) {
-                if(endereco) {
-                    document.getElementById('ret').value = endereco;
-                    document.getElementById('recorrente-box').style.display = 'none';
-                } else {
-                    document.getElementById('recorrente-box').style.display = 'block';
-                }
-            }).buscarClienteRecorrente(nome);
+    async function carregarClientesRecorrentes() {
+        try {
+            const res = await fetch(URL_API + "?action=buscarTodosLocais");
+            const clientes = await res.json();
+            if(clientes && clientes.length > 0) {
+                clientesRecorrentesCache = clientes;
+                document.getElementById('lista-clientes').innerHTML = clientes.map(c => `<option value="${c[0]}">`).join('');
+            }
+        } catch(e) { console.error(e); }
+    }
+
+    document.getElementById('cli').addEventListener('input', function() {
+        const nomeDigitado = this.value;
+        const boxRecorrente = document.getElementById('recorrente-box');
+        const campoRetirada = document.getElementById('ret');
+        const clienteEncontrado = clientesRecorrentesCache.find(c => c[0].toString().toLowerCase() === nomeDigitado.toLowerCase());
+        if (clienteEncontrado) {
+            campoRetirada.value = clienteEncontrado[1];
+            boxRecorrente.style.display = 'none';
+        } else if (nomeDigitado.length > 2) {
+            boxRecorrente.style.display = 'block';
         }
     });
 
@@ -194,12 +193,9 @@
             const res = await fetch(URL_API + "?action=getLocations");
             const locs = await res.json();
             const motoFiltrada = urlParams.get('moto');
-
             locs.forEach(m => {
                 if (modoCliente && motoFiltrada && m.nome !== motoFiltrada) return;
-               
                 const popup = `<div class="popup-moto"><img src="${m.bike}"><b>${m.nome}</b><br>${m.detalhes}</div>`;
-               
                 if (markers[m.nome]) {
                     markers[m.nome].setLatLng([m.lat, m.lng]).getPopup().setContent(popup);
                 } else {
@@ -208,10 +204,6 @@
                         className: '', iconSize:[40,40], iconAnchor:[20,40], popupAnchor:[0,-40]
                     });
                     markers[m.nome] = L.marker([m.lat, m.lng], {icon}).addTo(map).bindPopup(popup);
-                }
-
-                if (modoCliente && motoFiltrada && m.nome === motoFiltrada) {
-                    map.panTo([m.lat, m.lng]);
                 }
             });
         } catch(e){}
@@ -225,32 +217,13 @@
         const ent = document.getElementById('ent').value;
         const taxaBase = parseFloat(document.getElementById('taxa-val').value) || 0;
         const qtd = parseInt(document.getElementById('qtd-ped').value) || 1;
-        const taxaCalculada = taxaBase * qtd;
         const isRecorrente = document.getElementById('salvar-recorrente').checked;
-
-        const d = {
-            acao:"novo_pedido",
-            cliente: cli + (qtd > 1 ? " [" + qtd + " Entregas]" : ""),
-            produto: prod,
-            retirada: ret,
-            entrega: ent,
-            motoboy: document.getElementById('sel-moto').value,
-            taxa: taxaCalculada,
-            pg: document.getElementById('sel-pg').value
-        };
-
-        if(confirm("Confirmar lançamento de R$ " + taxaCalculada.toFixed(2) + "?")) {
-            // NOVO: Salva na aba LOCAL se marcado
-            if(isRecorrente) {
-                google.script.run.salvarNovoLocal(cli, ret);
-            }
-
+        const d = { acao:"novo_pedido", cliente: cli + (qtd > 1 ? " [" + qtd + " Entregas]" : ""), produto: prod, retirada: ret, entrega: ent, motoboy: document.getElementById('sel-moto').value, taxa: (taxaBase * qtd), pg: document.getElementById('sel-pg').value };
+        if(confirm("Confirmar lançamento?")) {
             await fetch(URL_API, { method:'POST', body:JSON.stringify(d) });
+            if(isRecorrente) await fetch(URL_API + "?action=salvarNovoLocal&nome=" + encodeURIComponent(cli) + "&endereco=" + encodeURIComponent(ret));
             alert("Lançado!");
-            carregarPedidos();
-            document.getElementById('qtd-ped').value = 1;
-            document.getElementById('salvar-recorrente').checked = false;
-            document.getElementById('recorrente-box').style.display = 'none';
+            location.reload();
         }
     }
 
@@ -268,9 +241,9 @@
                 let pg = String(v.pagamento || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
                 if(pg === "pix") { tPix += val; qPix++; }
                 else if(pg === "dinheiro") { tDin += val; qDin++; }
-                else if(pg === "cartao") { tCar += val; qCar++; }
+                else if(pg === "cartao" || pg === "cartao") { tCar += val; qCar++; }
             });
-            dadosRel = { moto:m, total:(tPix+tDin+tCar), qtd:(qPix+qDin+qCar), ini:i, fimm:f, pix:tPix, qPix:qPix, din:tDin, qDin:qDin, cart:tCar, qCar:qCar };
+            dadosRel = { moto:m, total:(tPix+tDin+tCar), qtd:(qPix+qDin+qCar), ini:i, fim:f, pix:tPix, qPix:qPix, din:tDin, qDin:qDin, cart:tCar, qCar:qCar };
             document.getElementById('val-pix').innerText = "R$ " + tPix.toFixed(2);
             document.getElementById('qtd-pix').innerText = qPix;
             document.getElementById('val-din').innerText = "R$ " + tDin.toFixed(2);
@@ -287,29 +260,10 @@
         window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`);
     }
 
-    async function finalizar(id) { if(confirm("Finalizar?")) { await fetch(URL_API, { method:'POST', body:JSON.stringify({acao:"finalizar", id}) }); carregarPedidos(); } }
-   
-    async function despacharParaMoto(id, zap, ret, ent, prod) {
-        if(!zap) return alert("Sem WhatsApp!");
-        const linkAppMotoboy = "https://gustavobueno301412-bit.github.io/Valexpress/cliente.html";
-        await fetch(URL_API, { method:'POST', mode:'no-cors', body:JSON.stringify({acao:"updateStatus", id:id, status:'pendente'})});
-        const mensagem = `*VALE EXPRESS*\n📦 ${prod}\n📍 ${ret}\n🏁 ${ent}\n\n📲 *App:* ${linkAppMotoboy}`;
-        window.open(`https://api.whatsapp.com/send?phone=55${zap}&text=${encodeURIComponent(mensagem)}`);
-        setTimeout(carregarPedidos, 1500);
-    }
-   
-    function enviarWppCliente(moto, cliente) {
-        const linkRastreio = `https://gustavobueno301412-bit.github.io/rastreio-vale-express/index.html?moto=${encodeURIComponent(moto)}`;
-        const msg = `Olá *${cliente}*! 🛵\n\nSeu pedido da *Vale Express* já saiu! 📦\n\nO motoboy *${moto}* está a caminho. Acompanhe em tempo real pelo link abaixo:\n\n👉 ${linkRastreio}`;
-        window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`);
-    }
-
     async function abrirModalRelatorio() {
         document.getElementById('meuModalRel').style.display = 'block';
-        const opts = `<option value="TODOS">🌍 Todos os Motoboys</option>` +
-                     listaMotosGlobal.map(m => `<option value="${m.nome}">${m.nome}</option>`).join('');
+        const opts = `<option value="TODOS">🌍 Todos os Motoboys</option>` + listaMotosGlobal.map(m => `<option value="${m.nome}">${m.nome}</option>`).join('');
         document.getElementById('filtro-moto-modal').innerHTML = opts;
-       
         try {
             const res = await fetch(URL_API + "?action=getHistoricoCompleto");
             dadosGeraisCache = await res.json();
@@ -320,37 +274,14 @@
     function renderizarTabelaRelatorio() {
         const filtro = document.getElementById('filtro-moto-modal').value;
         const corpo = document.getElementById('corpo-relatorio');
-        corpo.innerHTML = "";
-        const filtrados = dadosGeraisCache.filter(d => filtro === "TODOS" || d.moto === filtro);
-       
-        filtrados.forEach(item => {
-            corpo.innerHTML += `
-                <tr>
-                    <td><b>${item.moto}</b></td>
-                    <td>R$ ${parseFloat(item.valor).toFixed(2)}</td>
-                    <td>${item.pg}</td>
-                    <td>${item.end}</td>
-                    <td><button class="btn-del" onclick="apagarDoRelatorio('${item.id}')">🗑️</button></td>
-                </tr>`;
-        });
+        corpo.innerHTML = dadosGeraisCache.filter(d => filtro === "TODOS" || d.moto === filtro).map(item => `<tr><td><b>${item.moto}</b></td><td>R$ ${parseFloat(item.valor).toFixed(2)}</td><td>${item.pg}</td><td>${item.end}</td><td><button class="btn-del" onclick="apagarDoRelatorio('${item.id}')">🗑️</button></td></tr>`).join('');
     }
 
     function compartilharHistoricoGeral() {
         const filtro = document.getElementById('filtro-moto-modal').value;
-        const filtrados = dadosGeraisCache.filter(d => filtro === "TODOS" || d.moto === filtro);
         let texto = `*VALE EXPRESS - HISTÓRICO GERAL*\n*Motoboy:* ${filtro}\n\n`;
-        filtrados.forEach(item => {
-            texto += `📦 Valor: R$ ${parseFloat(item.valor).toFixed(2)} | PG: ${item.pg}\n📍 Local: ${item.end}\n----------\n`;
-        });
+        dadosGeraisCache.filter(d => filtro === "TODOS" || d.moto === filtro).forEach(item => { texto += `📦 R$ ${parseFloat(item.valor).toFixed(2)} | ${item.pg}\n📍 Local: ${item.end}\n----------\n`; });
         window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(texto)}`);
-    }
-
-    async function apagarDoRelatorio(id) {
-        if(confirm("Deseja apagar esta corrida do histórico definitivamente?")) {
-            await fetch(URL_API, { method:'POST', body:JSON.stringify({acao:"deletar_historico", id: id}) });
-            alert("Removido!");
-            abrirModalRelatorio();
-        }
     }
 
     function gerarPDFRelatorio() {
@@ -358,12 +289,21 @@
         let tabelaHtml = document.querySelector('.tabela-rel').cloneNode(true);
         tabelaHtml.querySelectorAll('.btn-del').forEach(b => b.remove());
         const win = window.open('', '', 'height=700,width=900');
-        win.document.write('<html><head><title>Relatório</title></head><body>');
-        win.document.write(`<h1>Relatório Vale Express - ${filtro}</h1>`);
-        win.document.write(tabelaHtml.outerHTML);
-        win.document.write('</body></html>');
-        win.document.close();
-        win.print();
+        win.document.write(`<html><head><title>Relatório</title></head><body><h1>Relatório Vale Express - ${filtro}</h1>${tabelaHtml.outerHTML}</body></html>`);
+        win.document.close(); win.print();
+    }
+
+    async function finalizar(id) { if(confirm("Finalizar?")) { await fetch(URL_API, { method:'POST', body:JSON.stringify({acao:"finalizar", id}) }); carregarPedidos(); } }
+    async function apagarDoRelatorio(id) { if(confirm("Apagar?")) { await fetch(URL_API, { method:'POST', body:JSON.stringify({acao:"deletar_historico", id: id}) }); abrirModalRelatorio(); } }
+    async function despacharParaMoto(id, zap, ret, ent, prod) {
+        const linkAppMotoboy = "https://gustavobueno301412-bit.github.io/Valexpress/cliente.html";
+        await fetch(URL_API, { method:'POST', mode:'no-cors', body:JSON.stringify({acao:"updateStatus", id:id, status:'pendente'})});
+        window.open(`https://api.whatsapp.com/send?phone=55${zap}&text=${encodeURIComponent("*VALE EXPRESS*\n📦 "+prod+"\n📍 "+ret+"\n🏁 "+ent+"\n\n📲 App: "+linkAppMotoboy)}`);
+        setTimeout(carregarPedidos, 1500);
+    }
+    function enviarWppCliente(moto, cliente) {
+        const linkRastreio = `https://gustavobueno301412-bit.github.io/rastreio-vale-express/index.html?moto=${encodeURIComponent(moto)}`;
+        window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent("Olá "+cliente+"! 🛵\nSeu pedido saiu! Acompanhe aqui:\n"+linkRastreio)}`);
     }
 
     init();
