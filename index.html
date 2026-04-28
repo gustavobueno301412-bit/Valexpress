@@ -6,7 +6,8 @@
     <title>🛵📦 Vale Express - Bueno Software</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
-        :root { --primary: #0984e3; --dark: #2d3436; --success: #00b894; --whatsapp: #25D366; --bg: #f1f2f6; }
+        /* MANTENDO SEUS ESTILOS ORIGINAIS DO ADMINISTRADOR */
+        :root { --primary: #0984e3; --dark: #2d3436; --success: #00b894; --whatsapp: #25D366; --bg: #f1f2f6; --amarelo: #F8B400; --preto: #121212; --cinza: #1E1E1E; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 0; }
         .container { display: flex; flex-direction: column; gap: 15px; padding: 10px; }
         @media (min-width: 992px) { .container { display: grid; grid-template-columns: 350px 1fr; padding: 20px; height: 100vh; box-sizing: border-box; } .sidebar { overflow-y: auto; } }
@@ -24,25 +25,106 @@
         .btn-wpp { background: var(--whatsapp); width: auto; padding: 5px 10px; }
         .btn-desp { background: #6c5ce7; width: auto; padding: 5px 10px; }
         .btn-del { background: #ff7675; width: auto; padding: 5px 10px; }
-        .popup-moto { text-align: center; min-width: 120px; }
-        .popup-moto img { width: 100px; height: 70px; border-radius: 5px; object-fit: cover; margin: 5px auto; display: block; }
-        .qtd-container { display: flex; align-items: center; gap: 10px; background: #eef2f7; padding: 5px 10px; border-radius: 8px; margin: 5px 0; }
-        .qtd-container label { font-size: 14px; font-weight: bold; color: var(--dark); }
-        #qtd-ped { width: 80px; text-align: center; border: 2px solid var(--primary); }
+       
+        /* ESTILOS DA NOVA TELA INICIAL (PORTAL) */
+        #portal-inicial { background-color: var(--preto); min-height: 100vh; color: white; display: block; position: fixed; width: 100%; z-index: 99999; top: 0; left: 0; overflow-y: auto; }
+        .header-portal { width: 100%; padding: 25px 0; text-align: center; background: #000; border-bottom: 4px solid var(--amarelo); }
+        .container-portal { width: 90%; max-width: 450px; margin: 20px auto; }
+        .btn-menu { background: var(--cinza); border: 1px solid #333; border-radius: 15px; padding: 20px; margin-bottom: 15px; display: flex; align-items: center; width: 100%; color: white; cursor: pointer; transition: 0.3s; text-align: left;}
+        .label-btn { font-weight: bold; color: var(--amarelo); font-size: 18px; }
+        #areaCadastro { display: none; background: #222; padding: 20px; border-radius: 15px; border: 1px solid var(--amarelo); margin-bottom: 20px; }
+        .recorrente-box { display: flex; align-items: center; justify-content: space-between; background: #2a2a2a; padding: 10px; border-radius: 8px; margin-bottom: 15px; }
+       
+        /* ESTRADA E ANIMAÇÃO */
+        .estrada-container { width: 100%; background: #222; padding: 110px 0; position: relative; border-top: 3px solid #444; overflow: hidden; }
+        .faixa { width: 200%; height: 4px; background: repeating-linear-gradient(90deg, #777, #777 40px, transparent 40px, transparent 80px); position: absolute; top: 50%; left: 0; transform: translateY(-50%); animation: estradaCorrendo 0.5s linear infinite; }
+        @keyframes estradaCorrendo { from { left: 0; } to { left: -80px; } }
+        .veiculo { position: absolute; white-space: nowrap; display: flex; flex-direction: column; align-items: center; }
+        .moto-container { bottom: 25px; left: 30%; z-index: 50; animation: motoVibrando 0.1s ease-in-out infinite alternate, motoUltrapassando 5s ease-in-out infinite; }
+        @keyframes motoVibrando { from { transform: translateY(0); } to { transform: translateY(-2px); } }
+        @keyframes motoUltrapassando { 0%, 100% { left: 20%; } 50% { left: 40%; } }
+        .rotulo-vale { background-color: #000; color: var(--amarelo); font-size: 7px; font-weight: bold; padding: 1px 4px; border: 1px solid var(--amarelo); border-radius: 2px; margin-bottom: 2px; z-index: 60; margin-left: -28px; }
+        .caixa-emoji { font-size: 22px; margin-bottom: -15px; z-index: 55; margin-left: -28px; }
+        .moto-emoji { font-size: 45px; transform: scaleX(-1); }
+        .contramao { top: -25px; right: -250px; z-index: 10; animation: passarContramao 10s linear infinite; }
+        @keyframes passarContramao { from { right: -250px; } to { right: 130%; } }
+        .mesma-pista { bottom: 10px; left: 130%; z-index: 100; animation: serUltrapassado 15s linear infinite; transform: scaleX(-1); }
+        @keyframes serUltrapassado { from { left: 130%; } to { left: -250px; } }
+        .t-bike { font-size: 35px; margin-top: 60px; } .t-carro { font-size: 55px; margin-top: 45px; } .t-picape { font-size: 65px; margin-top: 35px; } .t-medio { font-size: 75px; margin-top: 25px; } .t-grande { font-size: 100px; margin-top: 0px; }
+
+        /* MODAL RELATORIO */
         .modal-rel { display: none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); }
         .modal-content { background: white; margin: 5% auto; padding: 20px; width: 95%; max-width: 900px; border-radius: 15px; max-height: 85vh; overflow-y: auto; color: #333; }
         .fechar { float: right; font-size: 28px; cursor: pointer; }
-        .tabela-rel { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 12px; }
-        .tabela-rel th { background: var(--primary); color: white; padding: 10px; text-align: left; }
-        .tabela-rel td { border-bottom: 1px solid #eee; padding: 10px; }
-        .controles-rel { display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; }
-        .controles-rel select, .controles-rel button { flex: 1; min-width: 120px; }
     </style>
 </head>
 <body>
+
+<div id="portal-inicial">
+    <div class="header-portal">
+        <h1>VALE <span style="color:var(--amarelo);">EXPRESS</span></h1>
+    </div>
+    <div class="container-portal">
+        <button class="btn-menu" onclick="document.getElementById('areaCadastro').style.display='block'">
+            <div style="font-size:30px; margin-right:15px;">📝</div>
+            <div><div class="label-btn">Novo Cadastro</div><div style="font-size:12px; color:#aaa;">Dados da entrega</div></div>
+        </button>
+
+        <div id="areaCadastro">
+            <label style="display: block; font-size: 12px; color: var(--amarelo); margin-bottom: 5px; font-weight: bold;">CLIENTE</label>
+            <input type="text" id="p-cli" list="lista-clientes" placeholder="Nome do Cliente" style="background:#333; color:white; border:1px solid #444;" oninput="salvarLocalStorage()">
+           
+            <label style="display: block; font-size: 12px; color: var(--amarelo); margin-bottom: 5px; font-weight: bold;">PRODUTO</label>
+            <input type="text" id="p-prod" placeholder="O que será entregue?" style="background:#333; color:white; border:1px solid #444;" oninput="salvarLocalStorage()">
+           
+            <label style="display: block; font-size: 12px; color: var(--amarelo); margin-bottom: 5px; font-weight: bold;">COLETA</label>
+            <input type="text" id="p-ret" placeholder="Endereço de saída" style="background:#333; color:white; border:1px solid #444;" oninput="salvarLocalStorage()">
+           
+            <label style="display: block; font-size: 12px; color: var(--amarelo); margin-bottom: 5px; font-weight: bold;">ENTREGA</label>
+            <input type="text" id="p-ent" placeholder="Endereço de destino" style="background:#333; color:white; border:1px solid #444;" oninput="salvarLocalStorage()">
+
+            <div class="recorrente-box">
+                <span style="font-size: 14px; font-weight: bold; color: white;">CLIENTE RECORRENTE?</span>
+                <select id="p-isRecorrente" style="width: auto; margin-bottom: 0; padding: 5px 10px; background: var(--amarelo); color: black; border: none; font-weight: bold;">
+                    <option value="nao">NÃO</option>
+                    <option value="sim">SIM</option>
+                </select>
+            </div>
+           
+            <button onclick="enviarParaAdmin()" style="width:100%; background:var(--amarelo); color:black; border:none; padding:12px; font-weight:bold; border-radius:8px; cursor:pointer;">CADASTRAR E IR PARA ADMIN</button>
+            <button onclick="document.getElementById('areaCadastro').style.display='none'" style="width:100%; background:transparent; border:none; color:#777; padding:10px; font-size:12px; cursor:pointer;">CANCELAR</button>
+        </div>
+
+        <button class="btn-menu" onclick="abrirAdmin()">
+            <div style="font-size:30px; margin-right:15px;">🏍️</div>
+            <div><div class="label-btn">Painel Administrativo</div><div style="font-size:12px; color:#aaa;">Gestão da frota</div></div>
+        </button>
+
+        <button class="btn-menu" style="opacity:0.5;">
+            <div style="font-size:30px; margin-right:15px;">💰</div>
+            <div><div class="label-btn">Setor de Cobrança</div><div style="font-size:12px; color:#aaa;">Em Breve</div></div>
+        </button>
+    </div>
+
+    <div class="estrada-container">
+        <div class="faixa"></div>
+        <div class="veiculo moto-container">
+            <div class="rotulo-vale">VALE EXPRESS</div>
+            <div class="caixa-emoji">📦</div>
+            <div class="moto-emoji">🛵</div>
+        </div>
+        <div class="veiculo contramao t-carro" style="animation-delay: 0s;">🚓</div>
+        <div class="veiculo contramao t-grande" style="animation-delay: 6s;">🚛</div>
+        <div class="veiculo mesma-pista t-grande" style="animation-delay: 2s;">🚜</div>
+    </div>
+</div>
+
+<div id="app-admin" style="display:none;">
 <div class="container">
     <div class="sidebar">
         <div class="card">
+            <button onclick="voltarPortal()" style="background:var(--preto); color:var(--amarelo); font-size:14px; padding:10px; margin-bottom:10px; border: 1px solid var(--amarelo);">🏠 VOLTAR AO INÍCIO</button>
+           
             <h2>🛵 VALE EXPRESS - 📦 Nova corrida</h2>
             <input type="text" id="cli" placeholder="Cliente" list="lista-clientes" autocomplete="off">
             <datalist id="lista-clientes"></datalist>
@@ -103,19 +185,24 @@
         </div>
     </div>
 </div>
+</div>
 
 <div id="meuModalRel" class="modal-rel">
   <div class="modal-content">
     <span class="fechar" onclick="document.getElementById('meuModalRel').style.display='none'">&times;</span>
     <h2 style="color:var(--primary)">📋 Relatório Detalhado</h2>
-    <div class="controles-rel">
-      <select id="filtro-moto-modal" onchange="renderizarTabelaRelatorio()" style="color:black"></select>
-      <button onclick="gerarPDFRelatorio()" style="background:#d63031">📄 Gerar PDF</button>
-      <button onclick="compartilharHistoricoGeral()" style="background:#25D366">🚀 Zap Histórico</button>
+    <div class="controles-rel" style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 15px;">
+      <select id="filtro-moto-modal" onchange="renderizarTabelaRelatorio()" style="color:black; flex: 1; min-width: 150px;"></select>
+      <div style="display:flex; gap:5px; flex:2; min-width:300px;">
+          <input type="date" id="filtro-data-inicio-modal" onchange="renderizarTabelaRelatorio()" title="Data Inicial">
+          <input type="date" id="filtro-data-fim-modal" onchange="renderizarTabelaRelatorio()" title="Data Final">
+      </div>
+      <button onclick="gerarPDFRelatorio()" style="background:#d63031; width: auto; padding: 10px 20px;">📄 Gerar PDF</button>
+      <button onclick="compartilharHistoricoGeral()" style="background:#25D366; width: auto; padding: 10px 20px;">🚀 Zap Histórico</button>
     </div>
     <div class="table-responsive">
       <table class="tabela-rel">
-        <thead><tr><th>Motoboy</th><th>Valor</th><th>Pagamento</th><th>Endereço</th><th>Ações</th></tr></thead>
+        <thead><tr><th>Data/Moto</th><th>Valor</th><th>Pagamento</th><th>Endereço</th><th>Ações</th></tr></thead>
         <tbody id="corpo-relatorio"></tbody>
       </table>
     </div>
@@ -124,8 +211,8 @@
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-    const URL_API = "https://script.google.com/macros/s/AKfycbxVDLH2KGMgtpDlqaVHjx6Bp3hoyakC9aWQBx8eYnw4MIqDS6t5CFHX_4EOW8JRcTM7iw/exec";
-
+    // VARS GLOBAIS
+    const URL_API = "https://script.google.com/macros/s/AKfycbynTXsQ3VuKwA2uIUFGUsJyoGEegN41_x20sdjNW_S7kyCPPSmQ-R_G72tz_AP30vZMmg/exec";
     var map = L.map('map').setView([-22.5734, -44.9701], 14);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
     var markers = {}, listaMotosGlobal = [], dadosRel = {}, dadosGeraisCache = [], clientesRecorrentesCache = [];
@@ -134,17 +221,84 @@
     const modoCliente = urlParams.get('cliente') === 'true';
     if (modoCliente) document.body.classList.add('modo-rastreio');
 
+    // FUNÇÕES DO PORTAL
+    function abrirAdmin() {
+        document.getElementById('portal-inicial').style.display = 'none';
+        document.getElementById('app-admin').style.display = 'block';
+        setTimeout(() => map.invalidateSize(), 300);
+    }
+
+    function voltarPortal() {
+        document.getElementById('portal-inicial').style.display = 'block';
+        document.getElementById('app-admin').style.display = 'none';
+    }
+
+    function salvarLocalStorage() {
+        const dados = {
+            cli: document.getElementById('p-cli').value,
+            prod: document.getElementById('p-prod').value,
+            ret: document.getElementById('p-ret').value,
+            ent: document.getElementById('p-ent').value
+        };
+        localStorage.setItem('rascunho_vale', JSON.stringify(dados));
+    }
+
+    function carregarLocalStorage() {
+        const salvo = localStorage.getItem('rascunho_vale');
+        if(salvo) {
+            const d = JSON.parse(salvo);
+            document.getElementById('p-cli').value = d.cli || '';
+            document.getElementById('p-prod').value = d.prod || '';
+            document.getElementById('p-ret').value = d.ret || '';
+            document.getElementById('p-ent').value = d.ent || '';
+        }
+    }
+
+    function enviarParaAdmin() {
+        document.getElementById('cli').value = document.getElementById('p-cli').value;
+        document.getElementById('prod').value = document.getElementById('p-prod').value;
+        document.getElementById('ret').value = document.getElementById('p-ret').value;
+        document.getElementById('ent').value = document.getElementById('p-ent').value;
+        if(document.getElementById('p-isRecorrente').value === 'sim') {
+            document.getElementById('salvar-recorrente').checked = true;
+        }
+        localStorage.removeItem('rascunho_vale');
+        abrirAdmin();
+    }
+
+    // AUTO-COMPLETE NOS DOIS LUGARES
+    function setupAutoComplete(idInput, idEnd, idBox) {
+        document.getElementById(idInput).addEventListener('input', function() {
+            const nomeDigitado = this.value.toLowerCase().trim();
+            const achado = clientesRecorrentesCache.find(c => c.nome.toLowerCase() === nomeDigitado);
+            if (achado) {
+                document.getElementById(idEnd).value = achado.endereco;
+                if(idBox) document.getElementById(idBox).style.display = 'none';
+                salvarLocalStorage();
+            } else if (nomeDigitado.length > 2 && idBox) {
+                document.getElementById(idBox).style.display = 'block';
+            }
+        });
+    }
+
     async function init() {
+        carregarLocalStorage();
         try {
             const res = await (await fetch(URL_API + "?action=getConfig")).json();
             listaMotosGlobal = res.motoboys;
-            carregarClientesRecorrentes();
+           
+            await carregarClientesRecorrentes();
+            setupAutoComplete('p-cli', 'p-ret', null);
+            setupAutoComplete('cli', 'ret', 'recorrente-box');
+
             const opts = res.motoboys.map(m => `<option value="${m.nome}">${m.nome}</option>`).join('');
             document.getElementById('sel-moto').innerHTML = opts;
             document.getElementById('rel-moto').innerHTML = opts;
             document.getElementById('sel-cidade').innerHTML = res.cidades.map(c => `<option value="${c.taxa}">${c.nome}</option>`).join('');
             document.getElementById('taxa-val').value = document.getElementById('sel-cidade').value;
-            carregarPedidos(); monitorarGps();
+           
+            carregarPedidos();
+            monitorarGps();
             setTimeout(() => map.invalidateSize(), 800);
         } catch(e) { console.error(e); }
     }
@@ -152,26 +306,13 @@
     async function carregarClientesRecorrentes() {
         try {
             const res = await fetch(URL_API + "?action=buscarTodosLocais");
-            const clientes = await res.json();
-            if(clientes && clientes.length > 0) {
-                clientesRecorrentesCache = clientes;
-                document.getElementById('lista-clientes').innerHTML = clientes.map(c => `<option value="${c[0]}">`).join('');
+            clientesRecorrentesCache = await res.json();
+            if(clientesRecorrentesCache.length > 0) {
+                document.getElementById('lista-clientes').innerHTML =
+                    clientesRecorrentesCache.map(c => `<option value="${c.nome}">`).join('');
             }
         } catch(e) { console.error(e); }
     }
-
-    document.getElementById('cli').addEventListener('input', function() {
-        const nomeDigitado = this.value;
-        const boxRecorrente = document.getElementById('recorrente-box');
-        const campoRetirada = document.getElementById('ret');
-        const clienteEncontrado = clientesRecorrentesCache.find(c => c[0].toString().toLowerCase() === nomeDigitado.toLowerCase());
-        if (clienteEncontrado) {
-            campoRetirada.value = clienteEncontrado[1];
-            boxRecorrente.style.display = 'none';
-        } else if (nomeDigitado.length > 2) {
-            boxRecorrente.style.display = 'block';
-        }
-    });
 
     async function carregarPedidos() {
         if(modoCliente) return;
@@ -210,7 +351,7 @@
         setTimeout(monitorarGps, 5000);
     }
 
-    async function lancar() {
+     async function lancar() {
         const cli = document.getElementById('cli').value;
         const prod = document.getElementById('prod').value;
         const ret = document.getElementById('ret').value;
@@ -218,12 +359,30 @@
         const taxaBase = parseFloat(document.getElementById('taxa-val').value) || 0;
         const qtd = parseInt(document.getElementById('qtd-ped').value) || 1;
         const isRecorrente = document.getElementById('salvar-recorrente').checked;
-        const d = { acao:"novo_pedido", cliente: cli + (qtd > 1 ? " [" + qtd + " Entregas]" : ""), produto: prod, retirada: ret, entrega: ent, motoboy: document.getElementById('sel-moto').value, taxa: (taxaBase * qtd), pg: document.getElementById('sel-pg').value };
+       
+        const d = {
+            acao:"novo_pedido",
+            cliente: cli + (qtd > 1 ? " [" + qtd + " Entregas]" : ""),
+            produto: prod,
+            retirada: ret,
+            entrega: ent,
+            motoboy: document.getElementById('sel-moto').value,
+            taxa: (taxaBase * qtd),
+            pg: document.getElementById('sel-pg').value,
+            recorrente: isRecorrente ? "sim" : "nao"
+        };
+       
         if(confirm("Confirmar lançamento?")) {
             await fetch(URL_API, { method:'POST', body:JSON.stringify(d) });
-            if(isRecorrente) await fetch(URL_API + "?action=salvarNovoLocal&nome=" + encodeURIComponent(cli) + "&endereco=" + encodeURIComponent(ret));
             alert("Lançado!");
-            location.reload();
+            document.getElementById('cli').value = '';
+            document.getElementById('prod').value = '';
+            document.getElementById('ret').value = '';
+            document.getElementById('ent').value = '';
+            document.getElementById('recorrente-box').style.display = 'none';
+            document.getElementById('salvar-recorrente').checked = false;
+            await carregarClientesRecorrentes();
+            carregarPedidos();
         }
     }
 
@@ -241,7 +400,7 @@
                 let pg = String(v.pagamento || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
                 if(pg === "pix") { tPix += val; qPix++; }
                 else if(pg === "dinheiro") { tDin += val; qDin++; }
-                else if(pg === "cartao" || pg === "cartao") { tCar += val; qCar++; }
+                else if(pg === "cartao") { tCar += val; qCar++; }
             });
             dadosRel = { moto:m, total:(tPix+tDin+tCar), qtd:(qPix+qDin+qCar), ini:i, fim:f, pix:tPix, qPix:qPix, din:tDin, qDin:qDin, cart:tCar, qCar:qCar };
             document.getElementById('val-pix').innerText = "R$ " + tPix.toFixed(2);
@@ -272,9 +431,39 @@
     }
 
     function renderizarTabelaRelatorio() {
-        const filtro = document.getElementById('filtro-moto-modal').value;
+        const filtroMoto = document.getElementById('filtro-moto-modal').value;
+        const dataInicio = document.getElementById('filtro-data-inicio-modal').value;
+        const dataFim = document.getElementById('filtro-data-fim-modal').value;
         const corpo = document.getElementById('corpo-relatorio');
-        corpo.innerHTML = dadosGeraisCache.filter(d => filtro === "TODOS" || d.moto === filtro).map(item => `<tr><td><b>${item.moto}</b></td><td>R$ ${parseFloat(item.valor).toFixed(2)}</td><td>${item.pg}</td><td>${item.end}</td><td><button class="btn-del" onclick="apagarDoRelatorio('${item.id}')">🗑️</button></td></tr>`).join('');
+       
+        corpo.innerHTML = dadosGeraisCache.filter(d => {
+            const matchMoto = filtroMoto === "TODOS" || d.moto === filtroMoto;
+            let matchData = true;
+            if(dataInicio && dataFim) {
+                matchData = d.data >= dataInicio && d.data <= dataFim;
+            } else if(dataInicio) {
+                matchData = d.data >= dataInicio;
+            } else if(dataFim) {
+                matchData = d.data <= dataFim;
+            }
+            return matchMoto && matchData;
+        }).map(item => {
+            const dataExibicao = item.data ? item.data.split('-').reverse().join('/') : '---';
+            return `<tr>
+            <td><small style="color:#666">${dataExibicao}</small><br><b>${item.moto}</b></td>
+            <td><small style="color:#0984e3">${item.cliente || 'S/C'}</small><br>R$ ${parseFloat(item.valor).toFixed(2)}</td>
+            <td>${item.pg}</td>
+            <td><small>${item.end}</small></td>
+            <td>
+                <button class="btn-wpp" style="background:#25D366" onclick="enviarComprovante('${item.cliente}', '${item.moto}', '${item.end}', '${item.valor}')">✅</button>
+                <button class="btn-del" onclick="apagarDoRelatorio('${item.id}')">🗑️</button>
+            </td></tr>`;
+        }).join('');
+    }
+
+    function enviarComprovante(cliente, moto, end, valor) {
+        const msg = `*VALE EXPRESS - COMPROVANTE DE ENTREGA* ✅\n\nOlá, ${cliente}! 🛵📦\nSua entrega foi concluída com sucesso pela nossa equipe.\n\n📍 *Local:* ${end}\n🛵 *Motoboy:* ${moto}\n💰 *Valor:* R$ ${parseFloat(valor).toFixed(2)}\n\nA Vale Express agradece a sua preferência! ✨`;
+        window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`);
     }
 
     function compartilharHistoricoGeral() {
@@ -287,23 +476,31 @@
     function gerarPDFRelatorio() {
         const filtro = document.getElementById('filtro-moto-modal').value;
         let tabelaHtml = document.querySelector('.tabela-rel').cloneNode(true);
-        tabelaHtml.querySelectorAll('.btn-del').forEach(b => b.remove());
+        tabelaHtml.querySelectorAll('button').forEach(b => b.remove());
         const win = window.open('', '', 'height=700,width=900');
         win.document.write(`<html><head><title>Relatório</title></head><body><h1>Relatório Vale Express - ${filtro}</h1>${tabelaHtml.outerHTML}</body></html>`);
         win.document.close(); win.print();
     }
 
     async function finalizar(id) { if(confirm("Finalizar?")) { await fetch(URL_API, { method:'POST', body:JSON.stringify({acao:"finalizar", id}) }); carregarPedidos(); } }
-    async function apagarDoRelatorio(id) { if(confirm("Apagar?")) { await fetch(URL_API, { method:'POST', body:JSON.stringify({acao:"deletar_historico", id: id}) }); abrirModalRelatorio(); } }
+   
+    async function apagarDoRelatorio(id) {
+        if(confirm("⚠️ ATENÇÃO: EXCLUIR DO HISTÓRICO?")) {
+            await fetch(URL_API, { method:'POST', body:JSON.stringify({acao:"deletar_historico", id: id}) });
+            abrirModalRelatorio();
+        }
+    }
+
     async function despacharParaMoto(id, zap, ret, ent, prod) {
         const linkAppMotoboy = "https://gustavobueno301412-bit.github.io/Valexpress/cliente.html";
         await fetch(URL_API, { method:'POST', mode:'no-cors', body:JSON.stringify({acao:"updateStatus", id:id, status:'pendente'})});
         window.open(`https://api.whatsapp.com/send?phone=55${zap}&text=${encodeURIComponent("*VALE EXPRESS*\n📦 "+prod+"\n📍 "+ret+"\n🏁 "+ent+"\n\n📲 App: "+linkAppMotoboy)}`);
         setTimeout(carregarPedidos, 1500);
     }
+
     function enviarWppCliente(moto, cliente) {
         const linkRastreio = `https://gustavobueno301412-bit.github.io/rastreio-vale-express/index.html?moto=${encodeURIComponent(moto)}`;
-        window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent("Olá "+cliente+"! 🛵\nSeu pedido saiu! Acompanhe aqui:\n"+linkRastreio)}`);
+        window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent("Olá "+cliente+"! 🛵\nSeu pedido saiu! Nosso profissional da Vale Express 🛵📦 Motoboy 🙋🏻‍♂️🪪 vai chegar aí rapidinho - Acompanhe aqui:\n"+linkRastreio)}`);
     }
 
     init();
