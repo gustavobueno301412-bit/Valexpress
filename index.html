@@ -115,7 +115,15 @@
         </div>
         <div class="veiculo contramao t-carro" style="animation-delay: 0s;">🚓</div>
         <div class="veiculo contramao t-grande" style="animation-delay: 6s;">🚛</div>
-        <div class="veiculo mesma-pista t-grande" style="animation-delay: 2s;">🚜</div>
+        <div class="veiculo contramao t-grande" style="animation-delay: 8s;">🚜</div>
+        <div class="veiculo contramao t-carro" style="animation-delay: 5s;">🚙</div>
+        <div class="veiculo contramao t-carro" style="animation-delay: 4s;">🚗</div>
+        
+        <div class="veiculo mesma-pista t-grande" style="animation-delay: 8s;">🚜</div>
+        <div class="veiculo mesma-pista t-grande" style="animation-delay: 6s;">🚛</div>
+         <div class="veiculo mesma-pista t-carro" style="animation-delay: 2s;">🚙</div>
+          <div class="veiculo mesma-pista t-carro" style="animation-delay: 5s;">🚓</div>
+          <div class="veiculo mesma-pista t-carro" style="animation-delay: 3s;">🚗</div>
     </div>
 </div>
 
@@ -467,20 +475,85 @@
     }
 
     function compartilharHistoricoGeral() {
-        const filtro = document.getElementById('filtro-moto-modal').value;
-        let texto = `*VALE EXPRESS - HISTÓRICO GERAL*\n*Motoboy:* ${filtro}\n\n`;
-        dadosGeraisCache.filter(d => filtro === "TODOS" || d.moto === filtro).forEach(item => { texto += `📦 R$ ${parseFloat(item.valor).toFixed(2)} | ${item.pg}\n📍 Local: ${item.end}\n----------\n`; });
-        window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(texto)}`);
-    }
+    const filtroMoto = document.getElementById('filtro-moto-modal').value;
+    const dataInicio = document.getElementById('filtro-data-inicio-modal').value;
+    const dataFim = document.getElementById('filtro-data-fim-modal').value;
+
+    // Filtra os dados primeiro
+    const dadosFiltrados = dadosGeraisCache.filter(d => {
+        const matchMoto = filtroMoto === "TODOS" || d.moto === filtroMoto;
+        let matchData = true;
+        if(dataInicio && dataFim) {
+            matchData = d.data >= dataInicio && d.data <= dataFim;
+        } else if(dataInicio) {
+            matchData = d.data >= dataInicio;
+        } else if(dataFim) {
+            matchData = d.data <= dataFim;
+        }
+        return matchMoto && matchData;
+    });
+
+    if (dadosFiltrados.length === 0) return alert("Nenhum dado para o período selecionado!");
+
+    let texto = `*VALE EXPRESS - HISTÓRICO GERAL*\n`;
+    texto += `*Motoboy:* ${filtroMoto}\n`;
+    texto += `*Período:* ${dataInicio || 'Início'} até ${dataFim || 'Hoje'}\n\n`;
+   
+    let totalPeriodo = 0;
+
+    dadosFiltrados.forEach(item => {
+        const valor = parseFloat(item.valor) || 0;
+        totalPeriodo += valor;
+        texto += `📦 R$ ${valor.toFixed(2)} | ${item.pg}\n📍 Local: ${item.end}\n----------\n`;
+    });
+
+    texto += `\n💰 *TOTAL DO PERÍODO: R$ ${totalPeriodo.toFixed(2)}*`;
+
+    window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(texto)}`);
+}
+
+ 
+
 
     function gerarPDFRelatorio() {
-        const filtro = document.getElementById('filtro-moto-modal').value;
-        let tabelaHtml = document.querySelector('.tabela-rel').cloneNode(true);
-        tabelaHtml.querySelectorAll('button').forEach(b => b.remove());
-        const win = window.open('', '', 'height=700,width=900');
-        win.document.write(`<html><head><title>Relatório</title></head><body><h1>Relatório Vale Express - ${filtro}</h1>${tabelaHtml.outerHTML}</body></html>`);
-        win.document.close(); win.print();
-    }
+    const filtro = document.getElementById('filtro-moto-modal').value;
+    const dataInicio = document.getElementById('filtro-data-inicio-modal').value;
+   
+    // Pegamos apenas o corpo da tabela que já está filtrado na tela
+    let tabelaHtml = document.querySelector('.tabela-rel').cloneNode(true);
+   
+    // Removemos a coluna de "Ações" (os botões) para o PDF ficar limpo
+    tabelaHtml.querySelectorAll('th:last-child, td:last-child').forEach(el => el.remove());
+
+    const win = window.open('', '', 'height=700,width=900');
+    win.document.write(`
+        <html>
+        <head>
+            <title>Relatório Vale Express</title>
+            <style>
+                body { font-family: sans-serif; padding: 20px; }
+                table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+                th, td { border: 1px solid #ccc; padding: 8px; text-align: left; font-size: 12px; }
+                th { background: #eee; }
+                h1 { color: #0984e3; }
+            </style>
+        </head>
+        <body>
+            <h1>Relatório Vale Express</h1>
+            <p><strong>Motoboy:</strong> ${filtro}</p>
+            <p><strong>Data de extração:</strong> ${new Date().toLocaleDateString()}</p>
+            ${tabelaHtml.outerHTML}
+        </body>
+        </html>
+    `);
+    win.document.close();
+   
+    // Pequeno tempo para carregar o HTML antes de abrir a caixa de impressão
+    setTimeout(() => { win.print(); }, 500);
+}
+
+ 
+
 
     async function finalizar(id) { if(confirm("Finalizar?")) { await fetch(URL_API, { method:'POST', body:JSON.stringify({acao:"finalizar", id}) }); carregarPedidos(); } }
    
