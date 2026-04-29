@@ -329,7 +329,7 @@
             document.getElementById('lista-pedidos').innerHTML = pedidos.map(p => {
                 const zap = listaMotosGlobal.find(m => m.nome === p.moto)?.whatsapp || "";
                 return `<tr><td><b>${p.moto}</b><br>${p.cliente}</td><td>${p.status}</td><td>
-                    <button class="btn-desp" onclick="despacharParaMoto(${p.id},'${zap}','${p.ret}','${p.ent}','${p.produto}')">🛵</button>
+                    <button class="btn-desp" onclick="despacharParaMoto(${p.id},'${zap}','${p.ret}','${p.ent}','${p.prod}')">🛵</button>
                     <button class="btn-wpp" onclick="enviarWppCliente('${p.moto}','${p.cliente}')">📱</button>
                     <button class="btn-del" onclick="finalizar(${p.id})">🗑️</button>
                 </td></tr>`;
