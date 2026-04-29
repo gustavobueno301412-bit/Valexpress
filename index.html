@@ -567,7 +567,7 @@
     async function despacharParaMoto(id, zap, ret, ent, prod) {
         const linkAppMotoboy = "https://gustavobueno301412-bit.github.io/Valexpress/cliente.html";
         await fetch(URL_API, { method:'POST', mode:'no-cors', body:JSON.stringify({acao:"updateStatus", id:id, status:'pendente'})});
-        window.open(`https://api.whatsapp.com/send?phone=55${zap}&text=${encodeURIComponent("*VALE EXPRESS*\n📦 "+p.produto+"\n📍 "+ret+"\n🏁 "+ent+"\n\n📲 App: "+linkAppMotoboy)}`);
+        window.open(`https://api.whatsapp.com/send?phone=55${zap}&text=${encodeURIComponent("*VALE EXPRESS*\n📦 "+prod+"\n📍 "+ret+"\n🏁 "+ent+"\n\n📲 App: "+linkAppMotoboy)}`);
         setTimeout(carregarPedidos, 1500);
     }
 
