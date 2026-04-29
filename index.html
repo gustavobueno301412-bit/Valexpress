@@ -116,14 +116,14 @@
         <div class="veiculo contramao t-carro" style="animation-delay: 0s;">🚓</div>
         <div class="veiculo contramao t-grande" style="animation-delay: 8s;">🚛</div>
         <div class="veiculo contramao t-grande" style="animation-delay: 12s;">🚜</div>
-        <div class="veiculo contramao t-carro" style="animation-delay: 2s;">🚙</div>
+        <div class="veiculo contramao t-carro" style="animation-delay: 16s;">🚙</div>
         <div class="veiculo contramao t-carro" style="animation-delay: 5s;">🚗</div>
         
-        <div class="veiculo mesma-pista t-grande" style="animation-delay: 12s;">🚜</div>
+        <div class="veiculo mesma-pista t-grande" style="animation-delay: 12s;">🚒</div>
         <div class="veiculo mesma-pista t-grande" style="animation-delay: 8s;">🚛</div>
          <div class="veiculo mesma-pista t-carro" style="animation-delay: 2s;">🚙</div>
           <div class="veiculo mesma-pista t-carro" style="animation-delay: 14s;">🚓</div>
-          <div class="veiculo mesma-pista t-carro" style="animation-delay: 5s;">🚗</div>
+          <div class="veiculo mesma-pista t-carro" style="animation-delay: 18s;">🚗</div>
     </div>
 </div>
 
@@ -329,7 +329,7 @@
             document.getElementById('lista-pedidos').innerHTML = pedidos.map(p => {
                 const zap = listaMotosGlobal.find(m => m.nome === p.moto)?.whatsapp || "";
                 return `<tr><td><b>${p.moto}</b><br>${p.cliente}</td><td>${p.status}</td><td>
-                    <button class="btn-desp" onclick="despacharParaMoto(${p.id},'${zap}','${p.ret}','${p.ent}','${p.prod}')">🛵</button>
+                    <button class="btn-desp" onclick="despacharParaMoto(${p.id},'${zap}','${p.ret}','${p.ent}','${p.produto}')">🛵</button>
                     <button class="btn-wpp" onclick="enviarWppCliente('${p.moto}','${p.cliente}')">📱</button>
                     <button class="btn-del" onclick="finalizar(${p.id})">🗑️</button>
                 </td></tr>`;
@@ -567,7 +567,7 @@
     async function despacharParaMoto(id, zap, ret, ent, prod) {
         const linkAppMotoboy = "https://gustavobueno301412-bit.github.io/Valexpress/cliente.html";
         await fetch(URL_API, { method:'POST', mode:'no-cors', body:JSON.stringify({acao:"updateStatus", id:id, status:'pendente'})});
-        window.open(`https://api.whatsapp.com/send?phone=55${zap}&text=${encodeURIComponent("*VALE EXPRESS*\n📦 "+prod+"\n📍 "+ret+"\n🏁 "+ent+"\n\n📲 App: "+linkAppMotoboy)}`);
+        window.open(`https://api.whatsapp.com/send?phone=55${zap}&text=${encodeURIComponent("*VALE EXPRESS*\n📦 "+p.produto+"\n📍 "+ret+"\n🏁 "+ent+"\n\n📲 App: "+linkAppMotoboy)}`);
         setTimeout(carregarPedidos, 1500);
     }
 
