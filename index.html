@@ -6,7 +6,6 @@
     <title>🛵📦 Vale Express - Bueno Software</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
-        /* MANTENDO SEUS ESTILOS ORIGINAIS DO ADMINISTRADOR */
         :root { --primary: #0984e3; --dark: #2d3436; --success: #00b894; --whatsapp: #25D366; --bg: #f1f2f6; --amarelo: #F8B400; --preto: #121212; --cinza: #1E1E1E; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 0; }
         .container { display: flex; flex-direction: column; gap: 15px; padding: 10px; }
@@ -26,7 +25,6 @@
         .btn-desp { background: #6c5ce7; width: auto; padding: 5px 10px; }
         .btn-del { background: #ff7675; width: auto; padding: 5px 10px; }
        
-        /* ESTILOS DA NOVA TELA INICIAL (PORTAL) */
         #portal-inicial { background-color: var(--preto); min-height: 100vh; color: white; display: block; position: fixed; width: 100%; z-index: 99999; top: 0; left: 0; overflow-y: auto; }
         .header-portal { width: 100%; padding: 25px 0; text-align: center; background: #000; border-bottom: 4px solid var(--amarelo); }
         .container-portal { width: 90%; max-width: 450px; margin: 20px auto; }
@@ -35,7 +33,6 @@
         #areaCadastro { display: none; background: #222; padding: 20px; border-radius: 15px; border: 1px solid var(--amarelo); margin-bottom: 20px; }
         .recorrente-box { display: flex; align-items: center; justify-content: space-between; background: #2a2a2a; padding: 10px; border-radius: 8px; margin-bottom: 15px; }
        
-        /* ESTRADA E ANIMAÇÃO */
         .estrada-container { width: 100%; background: #222; padding: 110px 0; position: relative; border-top: 3px solid #444; overflow: hidden; }
         .faixa { width: 200%; height: 4px; background: repeating-linear-gradient(90deg, #777, #777 40px, transparent 40px, transparent 80px); position: absolute; top: 50%; left: 0; transform: translateY(-50%); animation: estradaCorrendo 0.5s linear infinite; }
         @keyframes estradaCorrendo { from { left: 0; } to { left: -80px; } }
@@ -50,9 +47,7 @@
         @keyframes passarContramao { from { right: -250px; } to { right: 130%; } }
         .mesma-pista { bottom: 10px; left: 130%; z-index: 100; animation: serUltrapassado 15s linear infinite; transform: scaleX(-1); }
         @keyframes serUltrapassado { from { left: 130%; } to { left: -250px; } }
-        .t-bike { font-size: 35px; margin-top: 60px; } .t-carro { font-size: 55px; margin-top: 45px; } .t-picape { font-size: 65px; margin-top: 35px; } .t-medio { font-size: 75px; margin-top: 25px; } .t-grande { font-size: 100px; margin-top: 0px; }
 
-        /* MODAL RELATORIO */
         .modal-rel { display: none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); }
         .modal-content { background: white; margin: 5% auto; padding: 20px; width: 95%; max-width: 900px; border-radius: 15px; max-height: 85vh; overflow-y: auto; color: #333; }
         .fechar { float: right; font-size: 28px; cursor: pointer; }
@@ -62,7 +57,7 @@
 
 <div id="portal-inicial">
     <div class="header-portal">
-        <h1>VALE <span style="color:var(--amarelo);">EXPRESS</span></h1>
+        <h1>🛵📦 VALE <span style="color:var(--amarelo);">EXPRESS 🛵📦</span></h1>
     </div>
     <div class="container-portal">
         <button class="btn-menu" onclick="document.getElementById('areaCadastro').style.display='block'">
@@ -73,16 +68,12 @@
         <div id="areaCadastro">
             <label style="display: block; font-size: 12px; color: var(--amarelo); margin-bottom: 5px; font-weight: bold;">CLIENTE</label>
             <input type="text" id="p-cli" list="lista-clientes" placeholder="Nome do Cliente" style="background:#333; color:white; border:1px solid #444;" oninput="salvarLocalStorage()">
-           
             <label style="display: block; font-size: 12px; color: var(--amarelo); margin-bottom: 5px; font-weight: bold;">PRODUTO</label>
             <input type="text" id="p-prod" placeholder="O que será entregue?" style="background:#333; color:white; border:1px solid #444;" oninput="salvarLocalStorage()">
-           
             <label style="display: block; font-size: 12px; color: var(--amarelo); margin-bottom: 5px; font-weight: bold;">COLETA</label>
             <input type="text" id="p-ret" placeholder="Endereço de saída" style="background:#333; color:white; border:1px solid #444;" oninput="salvarLocalStorage()">
-           
             <label style="display: block; font-size: 12px; color: var(--amarelo); margin-bottom: 5px; font-weight: bold;">ENTREGA</label>
             <input type="text" id="p-ent" placeholder="Endereço de destino" style="background:#333; color:white; border:1px solid #444;" oninput="salvarLocalStorage()">
-
             <div class="recorrente-box">
                 <span style="font-size: 14px; font-weight: bold; color: white;">CLIENTE RECORRENTE?</span>
                 <select id="p-isRecorrente" style="width: auto; margin-bottom: 0; padding: 5px 10px; background: var(--amarelo); color: black; border: none; font-weight: bold;">
@@ -90,7 +81,6 @@
                     <option value="sim">SIM</option>
                 </select>
             </div>
-           
             <button onclick="enviarParaAdmin()" style="width:100%; background:var(--amarelo); color:black; border:none; padding:12px; font-weight:bold; border-radius:8px; cursor:pointer;">CADASTRAR E IR PARA ADMIN</button>
             <button onclick="document.getElementById('areaCadastro').style.display='none'" style="width:100%; background:transparent; border:none; color:#777; padding:10px; font-size:12px; cursor:pointer;">CANCELAR</button>
         </div>
@@ -118,12 +108,6 @@
         <div class="veiculo contramao t-grande" style="animation-delay: 12s;">🚜</div>
         <div class="veiculo contramao t-carro" style="animation-delay: 16s;">🚙</div>
         <div class="veiculo contramao t-carro" style="animation-delay: 5s;">🚗</div>
-        
-        <div class="veiculo mesma-pista t-grande" style="animation-delay: 12s;">🚒</div>
-        <div class="veiculo mesma-pista t-grande" style="animation-delay: 8s;">🚛</div>
-         <div class="veiculo mesma-pista t-carro" style="animation-delay: 2s;">🚙</div>
-          <div class="veiculo mesma-pista t-carro" style="animation-delay: 14s;">🚓</div>
-          <div class="veiculo mesma-pista t-carro" style="animation-delay: 18s;">🚗</div>
     </div>
 </div>
 
@@ -132,31 +116,23 @@
     <div class="sidebar">
         <div class="card">
             <button onclick="voltarPortal()" style="background:var(--preto); color:var(--amarelo); font-size:14px; padding:10px; margin-bottom:10px; border: 1px solid var(--amarelo);">🏠 VOLTAR AO INÍCIO</button>
-           
             <h2>🛵 VALE EXPRESS - 📦 Nova corrida</h2>
             <input type="text" id="cli" placeholder="Cliente" list="lista-clientes" autocomplete="off">
             <datalist id="lista-clientes"></datalist>
-           
             <div id="recorrente-box" style="display:none; background:#e1f5fe; padding:8px; border-radius:8px; margin-bottom:5px;">
                 <label style="font-size:12px; color:#01579b; font-weight:bold;">
                     <input type="checkbox" id="salvar-recorrente" style="width:auto;"> Salvar este cliente como recorrente?
                 </label>
             </div>
-
             <input type="text" id="prod" placeholder="Produto">
             <input type="text" id="ret" placeholder="Retirada">
             <input type="text" id="ent" placeholder="Entrega">
             <select id="sel-cidade" onchange="document.getElementById('taxa-val').value=this.value"></select>
             <select id="sel-moto"></select>
-           
-            <div class="qtd-container">
-                <label>✖️ QUANTIDADE:</label>
-                <input type="number" id="qtd-ped" value="1" min="1">
-            </div>
-
+            <div class="qtd-container"><label>✖️ QUANTIDADE:</label><input type="number" id="qtd-ped" value="1" min="1"></div>
             <input type="number" id="taxa-val" placeholder="R$ Taxa Unitária">
             <select id="sel-pg">
-                <option value="Pix">📲 Pix</option>
+                <option value="Pix">🔑 Pix</option>
                 <option value="Dinheiro">💰 Dinheiro</option>
                 <option value="Cartão">💳 Cartão</option>
             </select>
@@ -165,10 +141,13 @@
         <div class="card" style="background: var(--dark); color: white;">
             <h2 style="color:white">💰 Fechamento</h2>
             <input type="date" id="ini"><input type="date" id="fim">
+            <div style="display:flex; gap:5px; margin-bottom:5px;">
+                <input type="time" id="h-ini-turno" title="Início do Turno" style="color:black">
+                <input type="time" id="h-fim-turno" title="Fim do Turno" style="color:black">
+            </div>
             <select id="rel-moto" style="color:black"></select>
             <button style="background:var(--success)" onclick="relatorio()">📈 GERAR RELATÓRIO</button>
             <button style="background:#e67e22; margin-top:5px;" onclick="abrirModalRelatorio()">📋 COMPROVANTE DO CLIENTE / DELETAR</button>
-
             <div id="res-rel" style="display:none; margin-top:10px; padding:10px; background:#444; border-radius:8px">
                 <p>Pix: <span id="val-pix" style="color:var(--success)">R$ 0.00</span> (<span id="qtd-pix">0</span>)</p>
                 <p>Dinheiro: <span id="val-din" style="color:var(--success)">R$ 0.00</span> (<span id="qtd-din">0</span>)</p>
@@ -205,6 +184,10 @@
           <input type="date" id="filtro-data-inicio-modal" onchange="renderizarTabelaRelatorio()" title="Data Inicial">
           <input type="date" id="filtro-data-fim-modal" onchange="renderizarTabelaRelatorio()" title="Data Final">
       </div>
+      <div style="display:flex; gap:5px; width:100%">
+          <input type="time" id="f-h-ini-modal" onchange="renderizarTabelaRelatorio()">
+          <input type="time" id="f-h-fim-modal" onchange="renderizarTabelaRelatorio()">
+      </div>
       <button onclick="gerarPDFRelatorio()" style="background:#d63031; width: auto; padding: 10px 20px;">📄 Gerar PDF</button>
       <button onclick="compartilharHistoricoGeral()" style="background:#25D366; width: auto; padding: 10px 20px;">🚀 Zap Histórico</button>
     </div>
@@ -219,8 +202,7 @@
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-    // VARS GLOBAIS
-    const URL_API = "https://script.google.com/macros/s/AKfycby6dT4D742GP3qF8b_oThx7sUsjnMor4j4NTV0TB0h_2CKOpYdH00v59FQaXArRdB9UVw/exec";
+    const URL_API = "https://script.google.com/macros/s/AKfycbwQ3uecyA-FfoE5h5NPcb6JU6_WHvN2yzlWDGZoAgMywUVgU7WdZTu4oOSxXfQdA7Ki/exec";
     var map = L.map('map').setView([-22.5734, -44.9701], 14);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
     var markers = {}, listaMotosGlobal = [], dadosRel = {}, dadosGeraisCache = [], clientesRecorrentesCache = [];
@@ -229,99 +211,60 @@
     const modoCliente = urlParams.get('cliente') === 'true';
     if (modoCliente) document.body.classList.add('modo-rastreio');
 
-    // FUNÇÕES DO PORTAL
     function abrirAdmin() {
         document.getElementById('portal-inicial').style.display = 'none';
         document.getElementById('app-admin').style.display = 'block';
         setTimeout(() => map.invalidateSize(), 300);
     }
-
     function voltarPortal() {
         document.getElementById('portal-inicial').style.display = 'block';
         document.getElementById('app-admin').style.display = 'none';
     }
-
     function salvarLocalStorage() {
-        const dados = {
-            cli: document.getElementById('p-cli').value,
-            prod: document.getElementById('p-prod').value,
-            ret: document.getElementById('p-ret').value,
-            ent: document.getElementById('p-ent').value
-        };
+        const dados = { cli: document.getElementById('p-cli').value, prod: document.getElementById('p-prod').value, ret: document.getElementById('p-ret').value, ent: document.getElementById('p-ent').value };
         localStorage.setItem('rascunho_vale', JSON.stringify(dados));
     }
-
     function carregarLocalStorage() {
         const salvo = localStorage.getItem('rascunho_vale');
         if(salvo) {
             const d = JSON.parse(salvo);
-            document.getElementById('p-cli').value = d.cli || '';
-            document.getElementById('p-prod').value = d.prod || '';
-            document.getElementById('p-ret').value = d.ret || '';
-            document.getElementById('p-ent').value = d.ent || '';
+            document.getElementById('p-cli').value = d.cli || ''; document.getElementById('p-prod').value = d.prod || ''; document.getElementById('p-ret').value = d.ret || ''; document.getElementById('p-ent').value = d.ent || '';
         }
     }
-
     function enviarParaAdmin() {
-        document.getElementById('cli').value = document.getElementById('p-cli').value;
-        document.getElementById('prod').value = document.getElementById('p-prod').value;
-        document.getElementById('ret').value = document.getElementById('p-ret').value;
-        document.getElementById('ent').value = document.getElementById('p-ent').value;
-        if(document.getElementById('p-isRecorrente').value === 'sim') {
-            document.getElementById('salvar-recorrente').checked = true;
-        }
-        localStorage.removeItem('rascunho_vale');
-        abrirAdmin();
+        document.getElementById('cli').value = document.getElementById('p-cli').value; document.getElementById('prod').value = document.getElementById('p-prod').value; document.getElementById('ret').value = document.getElementById('p-ret').value; document.getElementById('ent').value = document.getElementById('p-ent').value;
+        if(document.getElementById('p-isRecorrente').value === 'sim') { document.getElementById('salvar-recorrente').checked = true; }
+        localStorage.removeItem('rascunho_vale'); abrirAdmin();
     }
-
-    // AUTO-COMPLETE NOS DOIS LUGARES
     function setupAutoComplete(idInput, idEnd, idBox) {
         document.getElementById(idInput).addEventListener('input', function() {
             const nomeDigitado = this.value.toLowerCase().trim();
             const achado = clientesRecorrentesCache.find(c => c.nome.toLowerCase() === nomeDigitado);
             if (achado) {
-                document.getElementById(idEnd).value = achado.endereco;
-                if(idBox) document.getElementById(idBox).style.display = 'none';
-                salvarLocalStorage();
-            } else if (nomeDigitado.length > 2 && idBox) {
-                document.getElementById(idBox).style.display = 'block';
-            }
+                document.getElementById(idEnd).value = achado.endereco; if(idBox) document.getElementById(idBox).style.display = 'none'; salvarLocalStorage();
+            } else if (nomeDigitado.length > 2 && idBox) { document.getElementById(idBox).style.display = 'block'; }
         });
     }
-
     async function init() {
         carregarLocalStorage();
         try {
             const res = await (await fetch(URL_API + "?action=getConfig")).json();
-            listaMotosGlobal = res.motoboys;
-           
-            await carregarClientesRecorrentes();
-            setupAutoComplete('p-cli', 'p-ret', null);
-            setupAutoComplete('cli', 'ret', 'recorrente-box');
-
+            listaMotosGlobal = res.motoboys; await carregarClientesRecorrentes();
+            setupAutoComplete('p-cli', 'p-ret', null); setupAutoComplete('cli', 'ret', 'recorrente-box');
             const opts = res.motoboys.map(m => `<option value="${m.nome}">${m.nome}</option>`).join('');
-            document.getElementById('sel-moto').innerHTML = opts;
-            document.getElementById('rel-moto').innerHTML = opts;
+            document.getElementById('sel-moto').innerHTML = opts; document.getElementById('rel-moto').innerHTML = opts;
             document.getElementById('sel-cidade').innerHTML = res.cidades.map(c => `<option value="${c.taxa}">${c.nome}</option>`).join('');
             document.getElementById('taxa-val').value = document.getElementById('sel-cidade').value;
-           
-            carregarPedidos();
-            monitorarGps();
-            setTimeout(() => map.invalidateSize(), 800);
+            carregarPedidos(); monitorarGps(); setTimeout(() => map.invalidateSize(), 800);
         } catch(e) { console.error(e); }
     }
-
     async function carregarClientesRecorrentes() {
         try {
             const res = await fetch(URL_API + "?action=buscarTodosLocais");
             clientesRecorrentesCache = await res.json();
-            if(clientesRecorrentesCache.length > 0) {
-                document.getElementById('lista-clientes').innerHTML =
-                    clientesRecorrentesCache.map(c => `<option value="${c.nome}">`).join('');
-            }
+            if(clientesRecorrentesCache.length > 0) { document.getElementById('lista-clientes').innerHTML = clientesRecorrentesCache.map(c => `<option value="${c.nome}">`).join(''); }
         } catch(e) { console.error(e); }
     }
-
     async function carregarPedidos() {
         if(modoCliente) return;
         try {
@@ -336,7 +279,6 @@
             }).join('');
         } catch(e){}
     }
-
     async function monitorarGps() {
         try {
             const res = await fetch(URL_API + "?action=getLocations");
@@ -345,238 +287,146 @@
             locs.forEach(m => {
                 if (modoCliente && motoFiltrada && m.nome !== motoFiltrada) return;
                 const popup = `<div class="popup-moto"><img src="${m.bike}"><b>${m.nome}</b><br>${m.detalhes}</div>`;
-                if (markers[m.nome]) {
-                    markers[m.nome].setLatLng([m.lat, m.lng]).getPopup().setContent(popup);
-                } else {
-                    let icon = L.divIcon({
-                        html: `<img src="${m.foto}" style="width:40px;height:40px;border-radius:50%;border:3px solid #0984e3;object-fit:cover;">`,
-                        className: '', iconSize:[40,40], iconAnchor:[20,40], popupAnchor:[0,-40]
-                    });
+                if (markers[m.nome]) { markers[m.nome].setLatLng([m.lat, m.lng]).getPopup().setContent(popup); }
+                else {
+                    let icon = L.divIcon({ html: `<img src="${m.foto}" style="width:40px;height:40px;border-radius:50%;border:3px solid #0984e3;object-fit:cover;">`, className: '', iconSize:[40,40], iconAnchor:[20,40], popupAnchor:[0,-40] });
                     markers[m.nome] = L.marker([m.lat, m.lng], {icon}).addTo(map).bindPopup(popup);
                 }
             });
         } catch(e){}
         setTimeout(monitorarGps, 5000);
     }
-
-     async function lancar() {
-        const cli = document.getElementById('cli').value;
-        const prod = document.getElementById('prod').value;
-        const ret = document.getElementById('ret').value;
-        const ent = document.getElementById('ent').value;
-        const taxaBase = parseFloat(document.getElementById('taxa-val').value) || 0;
-        const qtd = parseInt(document.getElementById('qtd-ped').value) || 1;
+    async function lancar() {
+        const cli = document.getElementById('cli').value; const prod = document.getElementById('prod').value; const ret = document.getElementById('ret').value; const ent = document.getElementById('ent').value;
+        const taxaBase = parseFloat(document.getElementById('taxa-val').value) || 0; const qtd = parseInt(document.getElementById('qtd-ped').value) || 1;
         const isRecorrente = document.getElementById('salvar-recorrente').checked;
-       
-        const d = {
-            acao:"novo_pedido",
-            cliente: cli + (qtd > 1 ? " [" + qtd + " Entregas]" : ""),
-            produto: prod,
-            retirada: ret,
-            entrega: ent,
-            motoboy: document.getElementById('sel-moto').value,
-            taxa: (taxaBase * qtd),
-            pg: document.getElementById('sel-pg').value,
-            recorrente: isRecorrente ? "sim" : "nao"
-        };
-       
+        const d = { acao:"novo_pedido", cliente: cli + (qtd > 1 ? " [" + qtd + " Entregas]" : ""), produto: prod, retirada: ret, entrega: ent, motoboy: document.getElementById('sel-moto').value, taxa: (taxaBase * qtd), pg: document.getElementById('sel-pg').value, recorrente: isRecorrente ? "sim" : "nao" };
         if(confirm("Confirmar lançamento?")) {
             await fetch(URL_API, { method:'POST', body:JSON.stringify(d) });
-            alert("Lançado!");
-            document.getElementById('cli').value = '';
-            document.getElementById('prod').value = '';
-            document.getElementById('ret').value = '';
-            document.getElementById('ent').value = '';
-            document.getElementById('recorrente-box').style.display = 'none';
-            document.getElementById('salvar-recorrente').checked = false;
-            await carregarClientesRecorrentes();
-            carregarPedidos();
+            alert("Lançado!"); document.getElementById('cli').value = ''; document.getElementById('prod').value = ''; document.getElementById('ret').value = ''; document.getElementById('ent').value = '';
+            document.getElementById('recorrente-box').style.display = 'none'; document.getElementById('salvar-recorrente').checked = false;
+            await carregarClientesRecorrentes(); carregarPedidos();
         }
     }
-
     async function relatorio() {
-        const m = document.getElementById('rel-moto').value;
-        const i = document.getElementById('ini').value;
-        const f = document.getElementById('fim').value;
+        const m = document.getElementById('rel-moto').value; const i = document.getElementById('ini').value; const f = document.getElementById('fim').value;
+        const hIni = document.getElementById('h-ini-turno').value; const hFim = document.getElementById('h-fim-turno').value;
         if(!i || !f) return alert("Datas!");
         document.getElementById('res-rel').style.display='block';
         try {
             const res = await (await fetch(`${URL_API}?action=getRelatorio&moto=${encodeURIComponent(m)}&inicio=${i}&fim=${f}`)).json();
-            let tPix=0, qPix=0, tDin=0, qDin=0, tCar=0, qCar=0;
+            let tPix=0, qPix=0, tDin=0, qDin=0, tCar=0, qCar=0, viagensFiltradas = [];
             res.viagens.forEach(v => {
-                let val = parseFloat(v.valor) || 0;
-                let pg = String(v.pagamento || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-                if(pg === "pix") { tPix += val; qPix++; }
-                else if(pg === "dinheiro") { tDin += val; qDin++; }
-                else if(pg === "cartao") { tCar += val; qCar++; }
+                if(hIni && hFim) { if(v.hora < hIni || v.hora > hFim) return; }
+                let val = parseFloat(v.valor) || 0; let pg = String(v.pagamento || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+                if(pg === "pix") { tPix += val; qPix++; } else if(pg === "dinheiro") { tDin += val; qDin++; } else if(pg === "cartao") { tCar += val; qCar++; }
+                viagensFiltradas.push(v);
             });
-            dadosRel = { moto:m, total:(tPix+tDin+tCar), qtd:(qPix+qDin+qCar), ini:i, fim:f, pix:tPix, qPix:qPix, din:tDin, qDin:qDin, cart:tCar, qCar:qCar };
-            document.getElementById('val-pix').innerText = "R$ " + tPix.toFixed(2);
-            document.getElementById('qtd-pix').innerText = qPix;
-            document.getElementById('val-din').innerText = "R$ " + tDin.toFixed(2);
-            document.getElementById('qtd-din').innerText = qDin;
-            document.getElementById('val-cart').innerText = "R$ " + tCar.toFixed(2);
-            document.getElementById('qtd-cart').innerText = qCar;
-            document.getElementById('val-moto').innerText = "R$ " + dadosRel.total.toFixed(2);
-            document.getElementById('val-qtd').innerText = dadosRel.qtd;
+            dadosRel = { moto:m, total:(tPix+tDin+tCar), qtd:(qPix+qDin+qCar), ini:i, fim:f, hIni:hIni, hFim:hFim, pix:tPix, qPix:qPix, din:tDin, qDin:qDin, cart:tCar, qCar:qCar, viagens: viagensFiltradas };
+            document.getElementById('val-pix').innerText = "R$ " + tPix.toFixed(2); document.getElementById('qtd-pix').innerText = qPix; document.getElementById('val-din').innerText = "R$ " + tDin.toFixed(2); document.getElementById('qtd-din').innerText = qDin;
+            document.getElementById('val-cart').innerText = "R$ " + tCar.toFixed(2); document.getElementById('qtd-cart').innerText = qCar; document.getElementById('val-moto').innerText = "R$ " + dadosRel.total.toFixed(2); document.getElementById('val-qtd').innerText = dadosRel.qtd;
         } catch(e){}
     }
-
     function compartilharRelatorio() {
-        const msg = `*VALE EXPRESS - FECHAMENTO*\n\n🛵 ${dadosRel.moto}\n📅 ${dadosRel.ini} a ${dadosRel.fim}\n\n📱 Pix: R$ ${dadosRel.pix.toFixed(2)}\n💵 Dinheiro: R$ ${dadosRel.din.toFixed(2)}\n💳 Cartão: R$ ${dadosRel.cart.toFixed(2)}\n\n💰 *TOTAL GERAL: R$ ${dadosRel.total.toFixed(2)}*`;
+        let turnoTexto = (dadosRel.hIni && dadosRel.hFim) ? `\n⏰ *Turno:* ${dadosRel.hIni} às ${dadosRel.hFim}` : "";
+        const msg = `*VALE EXPRESS - FECHAMENTO*\n\n🛵 ${dadosRel.moto}\n📅 ${dadosRel.ini} a ${dadosRel.fim}${turnoTexto}\n\n📱 Pix: R$ ${dadosRel.pix.toFixed(2)}\n💵 Dinheiro: R$ ${dadosRel.din.toFixed(2)}\n💳 Cartão: R$ ${dadosRel.cart.toFixed(2)}\n\n💰 *TOTAL GERAL: R$ ${dadosRel.total.toFixed(2)}*`;
         window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`);
     }
-
     async function abrirModalRelatorio() {
         document.getElementById('meuModalRel').style.display = 'block';
         const opts = `<option value="TODOS">🌍 Todos os Motoboys</option>` + listaMotosGlobal.map(m => `<option value="${m.nome}">${m.nome}</option>`).join('');
         document.getElementById('filtro-moto-modal').innerHTML = opts;
-        try {
-            const res = await fetch(URL_API + "?action=getHistoricoCompleto");
-            dadosGeraisCache = await res.json();
-            renderizarTabelaRelatorio();
-        } catch(e) { alert("Erro ao carregar"); }
+        try { const res = await fetch(URL_API + "?action=getHistoricoCompleto"); dadosGeraisCache = await res.json(); renderizarTabelaRelatorio(); } catch(e) { alert("Erro ao carregar"); }
     }
 
+    // --- FUNÇÃO COM FILTROS CORRIGIDOS E SOMA DE 3 HORAS ---
     function renderizarTabelaRelatorio() {
         const filtroMoto = document.getElementById('filtro-moto-modal').value;
         const dataInicio = document.getElementById('filtro-data-inicio-modal').value;
         const dataFim = document.getElementById('filtro-data-fim-modal').value;
+        const hIni = document.getElementById('f-h-ini-modal').value;
+        const hFim = document.getElementById('f-h-fim-modal').value;
         const corpo = document.getElementById('corpo-relatorio');
-       
+
         corpo.innerHTML = dadosGeraisCache.filter(d => {
+            // 1. Filtro de Motoboy
             const matchMoto = filtroMoto === "TODOS" || d.moto === filtroMoto;
+           
+            // 2. Filtro de Data (Corrigido para não ignorar o valor selecionado)
             let matchData = true;
             if(dataInicio && dataFim) {
-                matchData = d.data >= dataInicio && d.data <= dataFim;
-            } else if(dataInicio) {
-                matchData = d.data >= dataInicio;
-            } else if(dataFim) {
-                matchData = d.data <= dataFim;
+                // Formata d.data para garantir comparação correta
+                const dataItem = d.data.split('T')[0];
+                matchData = dataItem >= dataInicio && dataItem <= dataFim;
             }
-            return matchMoto && matchData;
+           
+            // 3. Filtro de Hora
+            let matchHora = true;
+            if(hIni && hFim) {
+                matchHora = d.hora >= hIni && d.hora <= hFim;
+            }
+
+            return matchMoto && matchData && matchHora;
         }).map(item => {
-            const dataExibicao = item.data ? item.data.split('-').reverse().join('/') : '---';
-            return `<tr>
-            <td><small style="color:#666">${dataExibicao}</small><br><b>${item.moto}</b></td>
-            <td><small style="color:#0984e3">${item.cliente || 'S/C'}</small><br>R$ ${parseFloat(item.valor).toFixed(2)}</td>
-            <td>${item.pg}</td>
-            <td><small>${item.end}</small></td>
-            <td>
-                <button class="btn-wpp" style="background:#25D366" onclick="enviarComprovante('${item.cliente}', '${item.moto}', '${item.end}', '${item.valor}')">✅</button>
-                <button class="btn-del" onclick="apagarDoRelatorio('${item.id}')">🗑️</button>
-            </td></tr>`;
+            // Lógica de soma de 3 horas na exibição
+            let horaExibicao = item.hora || '';
+            if (item.hora && item.hora.includes(':')) {
+                let partes = item.hora.split(':');
+                let h = (parseInt(partes[0]) + 3) % 24;
+                horaExibicao = h.toString().padStart(2, '0') + ":" + partes[1];
+            }
+            const dataExibicao = item.data ? item.data.split('T')[0].split('-').reverse().join('/') : '---';
+            return `<tr><td><small style="color:#666">${dataExibicao}</small><b style="color:#0984e3; margin-left:5px;">🕒 ${horaExibicao}</b><br><b>${item.moto}</b></td>
+                <td><small style="color:#0984e3">${item.cliente || 'S/C'}</small><br>R$ ${parseFloat(item.valor).toFixed(2)}</td>
+                <td>${item.pg}</td><td><small>${item.end}</small></td>
+                <td><button class="btn-wpp" style="background:#25D366" onclick="enviarComprovante('${item.cliente}', '${item.moto}', '${item.end}', '${item.valor}', '${horaExibicao}')">✅</button>
+                    <button class="btn-del" onclick="apagarDoRelatorio('${item.id}')">🗑️</button></td></tr>`;
         }).join('');
     }
 
-    function enviarComprovante(cliente, moto, end, valor) {
-        const msg = `*VALE EXPRESS - COMPROVANTE DE ENTREGA* ✅\n\nOlá, ${cliente}! 🛵📦\nSua entrega foi concluída com sucesso pela nossa equipe.\n\n📍 *Local:* ${end}\n🛵 *Motoboy:* ${moto}\n💰 *Valor:* R$ ${parseFloat(valor).toFixed(2)}\n\nA Vale Express agradece a sua preferência! ✨`;
+    function enviarComprovante(cliente, moto, end, valor, hora) {
+        const msg = `*VALE EXPRESS - COMPROVANTE DE ENTREGA* ✅\n\nOlá, ${cliente}! 🛵📦\nSua entrega foi concluída com sucesso.\n\n📍 *Local:* ${end}\n🕒 *Horário:* ${hora}\n🛵 *Motoboy:* ${moto}\n💰 *Valor:* R$ ${parseFloat(valor).toFixed(2)}\nA Vale Express agradece! ✨`;
         window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`);
     }
-
     function compartilharHistoricoGeral() {
-    const filtroMoto = document.getElementById('filtro-moto-modal').value;
-    const dataInicio = document.getElementById('filtro-data-inicio-modal').value;
-    const dataFim = document.getElementById('filtro-data-fim-modal').value;
-
-    // Filtra os dados primeiro
-    const dadosFiltrados = dadosGeraisCache.filter(d => {
-        const matchMoto = filtroMoto === "TODOS" || d.moto === filtroMoto;
-        let matchData = true;
-        if(dataInicio && dataFim) {
-            matchData = d.data >= dataInicio && d.data <= dataFim;
-        } else if(dataInicio) {
-            matchData = d.data >= dataInicio;
-        } else if(dataFim) {
-            matchData = d.data <= dataFim;
-        }
-        return matchMoto && matchData;
-    });
-
-    if (dadosFiltrados.length === 0) return alert("Nenhum dado para o período selecionado!");
-
-    let texto = `*VALE EXPRESS - HISTÓRICO GERAL*\n`;
-    texto += `*Motoboy:* ${filtroMoto}\n`;
-    texto += `*Período:* ${dataInicio || 'Início'} até ${dataFim || 'Hoje'}\n\n`;
-   
-    let totalPeriodo = 0;
-
-    dadosFiltrados.forEach(item => {
-        const valor = parseFloat(item.valor) || 0;
-        totalPeriodo += valor;
-        texto += `📦 R$ ${valor.toFixed(2)} | ${item.pg}\n📍 Local: ${item.end}\n----------\n`;
-    });
-
-    texto += `\n💰 *TOTAL DO PERÍODO: R$ ${totalPeriodo.toFixed(2)}*`;
-
-    window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(texto)}`);
-}
-
- 
-
-
-    function gerarPDFRelatorio() {
-    const filtro = document.getElementById('filtro-moto-modal').value;
-    const dataInicio = document.getElementById('filtro-data-inicio-modal').value;
-   
-    // Pegamos apenas o corpo da tabela que já está filtrado na tela
-    let tabelaHtml = document.querySelector('.tabela-rel').cloneNode(true);
-   
-    // Removemos a coluna de "Ações" (os botões) para o PDF ficar limpo
-    tabelaHtml.querySelectorAll('th:last-child, td:last-child').forEach(el => el.remove());
-
-    const win = window.open('', '', 'height=700,width=900');
-    win.document.write(`
-        <html>
-        <head>
-            <title>Relatório Vale Express</title>
-            <style>
-                body { font-family: sans-serif; padding: 20px; }
-                table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-                th, td { border: 1px solid #ccc; padding: 8px; text-align: left; font-size: 12px; }
-                th { background: #eee; }
-                h1 { color: #0984e3; }
-            </style>
-        </head>
-        <body>
-            <h1>Relatório Vale Express</h1>
-            <p><strong>Motoboy:</strong> ${filtro}</p>
-            <p><strong>Data de extração:</strong> ${new Date().toLocaleDateString()}</p>
-            ${tabelaHtml.outerHTML}
-        </body>
-        </html>
-    `);
-    win.document.close();
-   
-    // Pequeno tempo para carregar o HTML antes de abrir a caixa de impressão
-    setTimeout(() => { win.print(); }, 500);
-}
-
- 
-
-
-    async function finalizar(id) { if(confirm("Finalizar?")) { await fetch(URL_API, { method:'POST', body:JSON.stringify({acao:"finalizar", id}) }); carregarPedidos(); } }
-   
-    async function apagarDoRelatorio(id) {
-        if(confirm("⚠️ ATENÇÃO: EXCLUIR DO HISTÓRICO?")) {
-            await fetch(URL_API, { method:'POST', body:JSON.stringify({acao:"deletar_historico", id: id}) });
-            abrirModalRelatorio();
-        }
+        const filtroMoto = document.getElementById('filtro-moto-modal').value;
+        const dataInicio = document.getElementById('filtro-data-inicio-modal').value;
+        const dataFim = document.getElementById('filtro-data-fim-modal').value;
+        const dadosFiltrados = dadosGeraisCache.filter(d => {
+            const matchMoto = filtroMoto === "TODOS" || d.moto === filtroMoto;
+            let matchData = (dataInicio && dataFim) ? (d.data.split('T')[0] >= dataInicio && d.data.split('T')[0] <= dataFim) : true;
+            return matchMoto && matchData;
+        });
+        let texto = `*VALE EXPRESS - HISTÓRICO GERAL*\n*Motoboy:* ${filtroMoto}\n\n`;
+        let total = 0;
+        dadosFiltrados.forEach(item => {
+            let hComp = item.hora;
+            if(hComp) { let p = hComp.split(':'); hComp = ((parseInt(p[0])+3)%24).toString().padStart(2,'0')+":"+p[1]; }
+            total += parseFloat(item.valor);
+            texto += `📦 R$ ${parseFloat(item.valor).toFixed(2)} | ${item.pg} | 🕒 ${hComp}\n📍 ${item.end}\n----------\n`;
+        });
+        texto += `\n💰 *TOTAL: R$ ${total.toFixed(2)}*`;
+        window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(texto)}`);
     }
-
+    function gerarPDFRelatorio() {
+        const win = window.open('', '', 'height=700,width=900');
+        win.document.write(`<html><head><title>Relatório</title></head><body><h1>Relatório Vale Express</h1>${document.querySelector('.tabela-rel').outerHTML}</body></html>`);
+        win.document.close(); setTimeout(() => { win.print(); }, 500);
+    }
+    async function finalizar(id) { if(confirm("Finalizar?")) { await fetch(URL_API, { method:'POST', body:JSON.stringify({acao:"finalizar", id}) }); carregarPedidos(); } }
+    async function apagarDoRelatorio(id) { if(confirm("⚠️ EXCLUIR?")) { await fetch(URL_API, { method:'POST', body:JSON.stringify({acao:"deletar_historico", id: id}) }); abrirModalRelatorio(); } }
     async function despacharParaMoto(id, zap, ret, ent, prod) {
         const linkAppMotoboy = "https://gustavobueno301412-bit.github.io/Valexpress/cliente.html";
         await fetch(URL_API, { method:'POST', mode:'no-cors', body:JSON.stringify({acao:"updateStatus", id:id, status:'pendente'})});
         window.open(`https://api.whatsapp.com/send?phone=55${zap}&text=${encodeURIComponent("*VALE EXPRESS*\n📦 "+prod+"\n📍 "+ret+"\n🏁 "+ent+"\n\n📲 App: "+linkAppMotoboy)}`);
         setTimeout(carregarPedidos, 1500);
     }
-
     function enviarWppCliente(moto, cliente) {
         const linkRastreio = `https://gustavobueno301412-bit.github.io/rastreio-vale-express/index.html?moto=${encodeURIComponent(moto)}`;
-        window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent("Olá "+cliente+"! 🛵\nSeu pedido saiu! Nosso profissional da Vale Express 🛵📦 Motoboy 🙋🏻‍♂️🪪 vai chegar aí rapidinho - Acompanhe aqui:\n"+linkRastreio)}`);
+        window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent("Olá "+cliente+"! 🛵\nMuito obrigado... \nA Vale Express 🛵📦 agradece pela sua preferência... \nO nosso MotoBoy 🙋🏻‍♂️ vai te levar rapidinho... \nAcompanhe seu pedido aqui:\n"+linkRastreio)}`);
     }
-
     init();
 </script>
 </body>
 </html>
+
